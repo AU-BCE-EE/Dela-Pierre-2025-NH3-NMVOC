@@ -13,7 +13,7 @@ library(dplyr)
 
 #Prerequisites to run readCRDS function#
 devtools::source_url('https://raw.githubusercontent.com/AU-BCE-EE/guidance/main/Picarro/PicarroFunction.R')
-source('Functions/PicarroFunction.R')  #source of readCRDS function coding file#
+# source('Functions/PicarroFunction.R')  #source of readCRDS function coding file#
 
 
 #Reading in Picarro data#
