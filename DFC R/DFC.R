@@ -91,7 +91,7 @@ val_data <- dat %>%
                             `18` = '0-bls',
                             `19` = '5.7'
   ),
-group = case_when(
+  group = case_when(
     valve %in% c(2, 6, 14) ~ 'No acid',
     valve %in% c(3, 10, 15) ~ 'Low acid',
     valve %in% c(4, 11, 17) ~ 'Medium acid',
@@ -99,35 +99,86 @@ group = case_when(
     valve %in% c(5, 9, 16) ~ 'Background',
     valve %in% c(1, 8, 12, 18) ~ 'bLS'
   )
-)
-
+  )
+dat <- rbind(val_data)
 
 #Background corrected concentration 
 #Background data
 DFC.bg <- dat[val_data$group == 'Background', ]
 
-#DFC oulet data
-DFC <- dat[val_data$group %in% c('No acid', 'Low acid', 'Medium acid', 'High acid'), ]
+
+#DFC outlet data
+DFC <- dat[val_data$group%in% c('No acid', 'Low acid', 'Medium acid', 'High acid', 'bLS'), ]
 
 #Mean background values
-DFC.bg.summ <- aggregate(NH3_30s ~ elapsed.time, data = DFC.bg, FUN = mean)
-dat <- dat %>%
-  left_join(val_data %>% select(valve, group), by = "valve")
+DFC.bg.mean <- aggregate(NH3_30s ~ elapsed.time, data = DFC.bg, FUN = mean)
 
 
 #Joining average background and outlet data
-DFC <- full_join(DFC.bg.summ, DFC, by = 'elapsed.time')
+DFC <- full_join(DFC.bg.mean, DFC, by = 'elapsed.time')
 DFC <- na.omit(DFC)
 
 #Subtracting background from outlet
-DFC$NH3.corr <- DFC$NH3_30s -  DFC.bg$NH3_30s
+DFC$NH3_corr <- DFC$NH3_30s.y - DFC$NH3_30s.x
 DFC[! complete.cases(DFC), ]
 
 #Rebind again in DFC datasheet
 dat <- rbind(DFC)
 
 
-#Emission calculation
+#Ambient temperature data
+#Import Weather Data and filter data
+header <- c('date', 'time', 'temp')
+weather <- read.csv('Temp.csv', fill = T, stringsAsFactors = F)
+weather <- weather[, -1 ]
+colnames(weather) <- header
+
+
+#Prepare and round off the Timestamp
+weather$date.time.weather <- paste(weather$date, weather$time)
+dat$date.time.weather <- dat$date.time
+dat$date.time.weather <- as.character(round_date(dat$date.time.weather, '1 hour'))
+
+
+# Merging data
+dat <- left_join(dat, weather, by = 'date.time.weather')
+
+dat$temp <- as.numeric(dat$temp)
+dat$air.temp.K <- dat$temp + 273.15
+
+
+#NH3 flux calculation
+#Air flow Calculation
+dat$air.flow <- 1
+dat$air.flow <- 49 * 60 # L min^-1 
+
+#Chamber Area Calculation
+dat$dfc.area <- 1
+dat$dfc.area <- (0.7/2)^2 * 3.14 #m^2
+
+
+
+#Constants for flux calculation:
+#Atmospheric constant
+atm.con <- 1 
+
+#Gas constant [L * atm * K^-1 * mol^-1]
+g.con <- 0.082057338 
+
+#Mass of nitrogen [g * mol^-1]
+M.N <- 14.0067 
+
+
+
+
+mean(dat$temp[1:3])
+mean(dat$temp)
+min(dat$temp)
+max(dat$temp)
+
+weather.expA <- dat[, c(1, 36)]
+weather.expA$experiment <- 'Experiment A'
+
 
 
 
