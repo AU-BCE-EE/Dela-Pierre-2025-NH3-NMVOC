@@ -147,39 +147,4 @@ dat$temp <- as.numeric(dat$temp)
 dat$air.temp.K <- dat$temp + 273.15
 
 
-#NH3 flux calculation
-#Air flow Calculation
-dat$air.flow <- 1
-dat$air.flow <- 49 * 60 # L min^-1 
-
-#Chamber Area Calculation
-dat$dfc.area <- 1
-dat$dfc.area <- (0.7/2)^2 * 3.14 #m^2
-
-
-
-#Constants for flux calculation:
-#Atmospheric constant
-atm.con <- 1 
-
-#Gas constant [L * atm * K^-1 * mol^-1]
-g.con <- 0.082057338 
-
-#Mass of nitrogen [g * mol^-1]
-M.N <- 14.0067 
-
-
-
-
-mean(dat$temp[1:3])
-mean(dat$temp)
-min(dat$temp)
-max(dat$temp)
-
-weather.expA <- dat[, c(1, 36)]
-weather.expA$experiment <- 'Experiment A'
-
-
-
-
 
