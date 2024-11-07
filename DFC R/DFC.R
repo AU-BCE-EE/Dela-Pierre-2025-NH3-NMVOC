@@ -1,0 +1,202 @@
+####### Flavia Project #########################
+####### NH3 Emissions from DFC Chambers ########
+####### Codes by Ali ###########################
+
+
+
+#Libraries used to run script#
+
+library(data.table)
+library(lubridate)
+library(dplyr)
+library(stringr)
+
+
+#Prerequisites to run readCRDS function#
+devtools::source_url('https://raw.githubusercontent.com/AU-BCE-EE/guidance/main/Picarro/PicarroFunction.R')
+
+#Reading in Picarro data#
+da <- readCRDS(('DFC_Picarro'), From = '17.09.2024 11:49:23', To = '24.09.2024 08:00:00', mult = F, tz = "ETC/GMT-1", rm = F)
+
+
+# Making date.time stamp#
+da$date.time <- paste(da$DATE, da$TIME)
+da$date.time <- ymd_hms(da$date.time)
+da$st <- da$date.time                                       
+da$DATE <- as.Date(da$st)                                 
+da$TIME <- format(da$st, format = "%H:%M:%S") 
+
+
+#Removing unnecessary data#
+str(da); da
+names(da)
+da <- da[, -c(1:15, 17:19, 21:27)]
+str(da); da
+
+
+#Renaming the column MPVPosition to valve#
+names(da)[names(da) == "MPVPosition"]  <- "valve"
+
+
+#Cropping data and taking the last point of each measurement from each valve#
+da <- filter(da, !(da$valve == lead(da$valve)))
+
+
+#Removal of valve changing values from 1-19#
+da <- da[da$valve %in% 1:19, ]
+
+
+#Ordering data according to valves#
+split_valda <- split(da, f = da$valve)
+valid <- paste0("V", unique(da$valve))
+new_da <- NULL
+
+
+#Calculate elapsed time of splited subset#
+for (i in seq_along(split_valda)) {
+  subset_data <- split_valda[[i]]
+  subset_data$elapsed.time <- difftime(subset_data$date.time, min(subset_data$date.time), units = 'hours')
+  new_da <- rbind(new_da, subset_data)
+}
+dat<- new_da
+  
+
+#Rounding elapsed time to days#
+dat$elapsed.time <- round(as.numeric(dat$elapsed.time))
+dat$days <- dat$elapsed.time / 24
+
+
+#Assign names to valve values#
+
+val_data <- dat %>%
+  mutate(treatment = recode(valve,
+                            `1` = '0-bls',
+                            `2` = '0-bp',
+                            `3` = '1.5',
+                            `4` = '2.9',
+                            `5` = 'bkg',
+                            `6` = '0-bp',
+                            `7` = '5.7',
+                            `8` = '0-bls',
+                            `9` = 'bkg',
+                            `10` = '1.5',
+                            `11` = '2.9',
+                            `12` = '0-bls',
+                            `13` = '5.7',
+                            `14` = '0-bp',
+                            `15` = '1.5',
+                            `16` = 'bkg',
+                            `17` = '2.9',
+                            `18` = '0-bls',
+                            `19` = '5.7'
+  ),
+group = case_when(
+    valve %in% c(2, 6, 14) ~ 'No acid',
+    valve %in% c(3, 10, 15) ~ 'Low acid',
+    valve %in% c(4, 11, 17) ~ 'Medium acid',
+    valve %in% c(7, 13, 19) ~ 'High acid',
+    valve %in% c(5, 9, 16) ~ 'Background',
+    valve %in% c(1, 8, 12, 18) ~ 'bLS'
+  )
+)
+dat <- rbind(val_data)
+
+#Background corrected concentration# 
+#Background data#
+DFC.bg <- dat[val_data$group == 'Background', ]
+
+
+#DFC outlet data#
+DFC <- dat[val_data$group%in% c('No acid', 'Low acid', 'Medium acid', 'High acid', 'bLS'), ]
+
+#Mean background values#
+DFC.bg.mean <- aggregate(NH3_30s ~ elapsed.time, data = DFC.bg, FUN = mean)
+
+
+#Joining average background and outlet data#
+DFC <- full_join(DFC.bg.mean, DFC, by = 'elapsed.time')
+DFC <- na.omit(DFC)
+
+#Subtracting background from outlet#
+DFC$NH3_corr <- DFC$NH3_30s.y - DFC$NH3_30s.x
+DFC[! complete.cases(DFC), ]
+
+#Rebind again in DFC datasheet#
+dat <- rbind(DFC)
+
+##############################################################################################################
+
+#Import Weather Data and filter data#
+header <- c('date', 'time', 'temp')
+weather <- read.csv('Temp.csv', fill = T, stringsAsFactors = F)
+weather <- weather[, -1 ]
+colnames(weather) <- header
+
+weather$date <- parse_date_time(weather$date, orders = c("d/m/y", "d-m-y"))
+
+start_date <- dmy("17/09/2024")
+end_date <- dmy("24/09/2024")
+
+
+weather$time <- as.character(weather$time)
+
+
+weather$date.time.weather <- paste(weather$date, weather$time)
+dat$date.time.weather <- dat$date.time
+dat$date.time.weather <- as.character(round_date(dat$date.time.weather, '1 hour'))
+
+
+weather$date.time.weather <- as.POSIXct(weather$date.time.weather, format = '%Y-%m-%d %H:%M', tz = "UTC")
+
+
+# Merging data#
+dat <- left_join(dat, weather, by = c('date.time' = 'date.time.weather'))
+
+##############################################################################################################
+
+dat$temp <- as.numeric(dat$temp)
+dat$air.temp.K <- dat$temp + 273.15
+
+
+#NH3 flux prerequisite components#
+#Air flow Calculation#
+dat$air.flow <- 1
+dat$air.flow <- 2.604 * 1000 # L min^-1 
+
+#Chamber Area Calculation#
+dat$dfc.area <- 1
+dat$dfc.area <- (0.7/2)**2 * 3.14 #m^2
+
+
+#Constants for flux calculation#
+#Atmospheric constant#
+atm.con <- 1 
+
+#Gas constant [L * atm * K^-1 * mol^-1]#
+g.con <- 0.082057338 
+
+#Mass of nitrogen [g * mol^-1]#
+M.N <- 14.0067 
+
+
+#Calculation of NH3 flux#
+#convert NH3.corr from ppb to mol (mol * L^-1)#
+dat$n.mol <- p.con / (g.con * dat$air.temp.K) * dat$NH3.corr * 10**-9
+
+#Final concentration (n) in mol * L^-1#
+dat$n.mol <- dat$n_numerator / (g.con * dat$air.temp.K)
+
+# calculation of flux, from mol * L^-1 to g.NH3 * min^-1 * m^-2#
+dat$NH3.flux <- (dat$n.mol * M.N * dat$air.flow) / dat$A.area
+
+
+
+
+
+
+
+
+
+
+
+
