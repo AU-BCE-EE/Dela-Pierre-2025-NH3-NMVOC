@@ -210,7 +210,7 @@ dat$flux.treat[is.na(dat$flux.treat)] <- dat$NH3.flux[1]
 dat$flux.time <- dat$flux.tr * 152
 
 #Cumulative emissions#
-dat <- mutate(group_by(dat, treatment, group), cum.emis = cumsum(flux.time))
+dat <- mutate(group_by(dat, treatment), cum.emis = cumsum(flux.time))
 ################################################################################################################################
 
 
@@ -250,40 +250,47 @@ g <- ggplot(dat, aes(x = elapsed.time, y = flux.time, color = group)) +
 
 ################################################################################################################################
 
-#Creating duplicate of original dataframe#
+# Create a duplicate of the original dataframe
 dat_duplicate <- copy(dat)
 
-#Deleting extra row to select uniform last row#
+# Remove row with elapsed.time == 139
 dat_duplicate <- dat_duplicate %>% filter(elapsed.time != 139)
 
-#Ensure cumulative emissions are calculated
-dat_duplicate <- mutate(group_by(dat_duplicate, treatment, group), cum.emis = cumsum(NH3.flux))
+# Ensure cumulative emissions are calculated by treatment
+dat_duplicate <- mutate(group_by(dat_duplicate, treatment), cum.emis = cumsum(flux.time))
 
-#Filter for the last time point#
-dat_last <- dat_duplicate %>%
-  group_by(group, treatment) %>%
-  filter(row_number() == n()) %>% 
+# Step 2: Ensure cumulative emissions are calculated by treatment
+dat_duplicate <- dat_duplicate %>%
+  group_by(treatment) %>% 
+  mutate(cum.emis = cumsum(flux.time)) %>%
   ungroup()
 
-#Summarize data for plotting#
+# Step 3: Filter for the last time point by valve and treatment
+dat_last <- dat_duplicate %>%
+  group_by(valve, treatment) %>%
+  filter(row_number() == n()) %>%
+  ungroup()
+
+# Step 4: Summarize data for plotting (one point per treatment group)
 isummMac_last <- dat_last %>%
-  select(group, treatment, cum.emis) %>%
+  select(valve, treatment, cum.emis) %>%
   distinct()
 
-#Average cumulative emissions for plotting
+# Step 5: Average cumulative emissions for plotting (average of last points for each treatment)
 esummMac_last <- isummMac_last %>%
-  group_by(group, treatment) %>%
-  summarise(cum.emis = mean(cum.emis, na.rm = F), .groups = 'drop')
+  group_by(treatment) %>%
+  summarise(cum.emis = mean(cum.emis, na.rm = TRUE), .groups = 'drop')
 
-#Plot only the last cumulative emissions#
-cumsum <- ggplot(isummMac_last, aes(x = group, y = cum.emis, color = group)) +  
-  geom_point(size = 2, alpha = 0.7) +     
-  geom_boxplot(data = esummMac_last, show.legend = F) + 
-  theme_bw() +                                          
+# Step 6: Plotting cumulative emissions by treatment (including boxplot)
+cumsum <- ggplot(isummMac_last, aes(x = treatment, y = cum.emis, color = treatment)) +  
+  geom_point(size = 2, alpha = 0.7) +  # Scatter plot for the last cumulative emission points
+  geom_boxplot(data = esummMac_last, aes(x = treatment, y = cum.emis, color = treatment), 
+               show.legend = F) +  # Boxplot showing the distribution of cumulative emissions by treatment
+  theme_bw() +  # Clean theme
   labs(
-    title = NULL,                                        
-    x = "Group",                                    
-    y = expression(paste(NH[3], " Cumulative emissions (g NH"[3]-N, " * min"^-1, " * m"^-2, ")")),                           
+    title = NULL,  
+    x = "Treatment",  # X-axis label
+    y = expression(paste(NH[3], " Cumulative emissions (g NH"[3]-N, " * min"^-1, " * m"^-2, ")"))  # Y-axis label with units
   ) + 
   theme(
     axis.title = element_text(size = 14),
@@ -291,88 +298,92 @@ cumsum <- ggplot(isummMac_last, aes(x = group, y = cum.emis, color = group)) +
     strip.text = element_blank(),             
     legend.title = element_blank(),                     
     legend.position = "right",                          
-    axis.text.x = element_text(angle = 45, hjust = 1) 
-  ); cumsum
+    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels for clarity
+  )
+
+# Step 7: Display the plot
+print(cumsum)
+
+
 
 ################################################################################################################################
 ###############################################################################################################################
 ###############################################################################################################################
 
-# Create a data frame with treatment-specific TAN values
-tan_values <- data.frame(
-  treatment = c('0-bls', '0-bp', '1.5', '2.9', '5.7'),  
+# Step 1: Create a duplicate of the original dataframe
+dat_duplicate <- copy(dat)
+
+# Step 2: Remove row with elapsed.time == 139
+dat_duplicate <- dat_duplicate %>% filter(elapsed.time != 139)
+
+# Step 3: Ensure cumulative emissions are calculated by treatment
+dat_duplicate <- mutate(group_by(dat_duplicate, treatment), cum.emis = cumsum(flux.time))
+
+# Step 4: Filter for the last time point by treatment group to find the final cumulative emissions
+dat_last <- dat_duplicate %>%
+  group_by(treatment) %>%
+  filter(elapsed.time == max(elapsed.time)) %>%
+  ungroup()
+
+# Step 5: Create the 'tan_data' data frame (this will contain the total TAN values for each treatment)
+tan_data <- data.frame(
+  treatment = c('0-bls', '0-bp', '1.5', '2.9', '5.7'),
   total_tan = c(2478.6055, 2519.7095, 2222.396, 1479.7655, 1131.413)
 )
-
-# Merge TAN values into the main dataset based on treatment
-dat <- left_join(dat, tan_values, by = "treatment")
 
 # Define chamber volume in liters
 Tan.volume <- 1.33  # Liters per chamber
 
 # Convert TAN from mg/L to grams using the chamber volume
-dat$TAN_grams <- dat$total_tan * Tan.volume / 1000  
+tan_data$total_tan <- tan_data$total_tan * Tan.volume / 1000  
 
-# Calculate cumulative NH3 emission flux by treatment
-dat <- dat %>%
-  arrange(elapsed.time) %>%       
-  group_by(treatment) %>%         
-  mutate(cumulative_NH3 = cumsum(flux.time)) %>%
-  ungroup()  
+# Step 6: Join your cumulative emissions data with the 'tan_data' for each treatment
+dat_last <- left_join(dat_last, tan_data, by = "treatment")
 
-# Calculate the TAN fraction in percentage
-dat <- dat %>%
-  mutate(TAN_fraction_percent = (cumulative_NH3 / TAN_grams) * 100)
+# Step 7: Calculate TAN loss over time (using cumulative NH3 emissions and total TAN values)
+dat_last <- dat_last %>%
+  mutate(
+    TAN_loss_percent = ( cum.emis / total_tan) * 100  # Calculate percentage of TAN lost
+  )
 
-# Handle cases where TAN_grams is zero to avoid division by zero
-dat$TAN_fraction_percent[is.nan(dat$TAN_fraction_percent) | is.infinite(dat$TAN_fraction_percent)] <- 0
-
-# --- PLOTTING ---
-
-# Create a duplicate dataset to filter for the last time point (if applicable)
-dat_duplicate <- dat %>%
-  filter(elapsed.time != 139) 
-
-# Filter for the last time point within each treatment group
-dat_last <- dat_duplicate %>%
-  group_by(treatment) %>%  
-  filter(row_number() == n()) %>%  
-  ungroup()
-
-# Summarize data for plotting (this will only contain one point per treatment)
+# Step 8: Create summary data for the boxplot
+# 8.1: Cumulative emissions (isummMac_last)
 isummMac_last <- dat_last %>%
-  select(treatment, cumulative_NH3) %>%
+  select(treatment, TAN_loss_percent) %>%
   distinct()
 
-# Average cumulative emissions for plotting (if needed, here it’s just the last point for each treatment)
+# 8.2: Average TAN loss percentage for plotting (esummMac_last)
 esummMac_last <- isummMac_last %>%
   group_by(treatment) %>%
-  summarise(cum.emis = mean(cumulative_NH3, na.rm = TRUE), .groups = 'drop')
+  summarise(TAN_loss_percent = mean(TAN_loss_percent, na.rm = TRUE), .groups = 'drop')
 
-# Plotting the TAN fraction loss percentage
-Tanfrac <- ggplot(dat_last, aes(x = group, y = TAN_fraction_percent, color = group)) +  
-  geom_point(size = 3, alpha = 0.7) +  
-  geom_boxplot(data = dat_last, aes(x = group, y = TAN_fraction_percent), 
-               show.legend = F, alpha = 0.3, width = 0.5) + 
-  theme_bw() +
+# Step 9: Plotting TAN loss percentage using boxplot
+
+# Create the boxplot for TAN loss percentage
+tan_loss_plot <- ggplot() + 
+  # Boxplot for TAN loss percentage
+  geom_boxplot(data = dat_last, aes(x = treatment, y = TAN_loss_percent, color = treatment, fill = treatment), 
+               alpha = 0.3, show.legend = FALSE) +
+  
+  # Scatter points for the TAN loss percentage (individual observations)
+  geom_point(data = isummMac_last, aes(x = treatment, y = TAN_loss_percent, color = treatment), 
+             size = 3, alpha = 0.7) + 
+  
+  theme_bw() +  # Clean theme
   labs(
-    title = NULL,  
-    x = "Treatment",  
-    y = "TAN Fraction Loss (%)"  
-  ) + 
+    title = "TAN Loss Percentage by Treatment",
+    x = "Treatment",  # X-axis label
+    y = "TAN Loss Percentage (%)"  # Y-axis label for TAN loss percentage
+  ) +
   theme(
-    axis.title = element_text(size = 14),  
-    axis.text = element_text(size = 12),   
-    legend.title = element_blank(),  
-    legend.position = "right",  
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    plot.title = element_text(size = 16, hjust = 0.5),
     axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels for clarity
   )
 
-# Display the plot
-print(Tanfrac)
-
-
-
+# Step 10: Display the plot
+print(tan_loss_plot)
 
 
 
