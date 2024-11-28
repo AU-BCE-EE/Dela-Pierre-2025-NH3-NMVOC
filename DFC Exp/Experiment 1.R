@@ -171,7 +171,7 @@ dat$air.temp.K <- dat$temp + 273.15
 #NH3 flux prerequisite components#
 #Air flow Calculation#
 dat$air.flow <- 1
-dat$air.flow <- 2.604 * 1000 # L min^-1 
+dat$air.flow <- 2.28 * 1000 # L min^-1 
 
 #Chamber Area Calculation#
 dat$dfc.area <- 1
