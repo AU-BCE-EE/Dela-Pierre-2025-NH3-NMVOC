@@ -199,7 +199,7 @@ dat$NH3.flux <- as.numeric(dat$NH3.flux)
 class(dat$NH3.flux)
 
 ################################################################################################################################
-source("mintegrate.R")
+source("functions/mintegrate.R")
 
 
 #Calculation of total flux over time#
