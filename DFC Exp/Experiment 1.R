@@ -203,14 +203,7 @@ class(dat$NH3.flux)
 #Update by Ali#
 source("functions/mintegrate.R")
 
-dat$flux.treat <- mintegrate(dat$NH3.flux, dat$elapsed.time)
-
-#Calculation of total flux over time#
-
-dat$flux.treat[is.na(dat$flux.treat)] <- dat$NH3.flux[1]
-
-#Calculation of total flux over time, time from start to last start (19 x 8 min)#
-dat$flux.time <- dat$flux.treat * 152
+dat$flux.treat <- mintegrate(dat$elapsed.time, dat$NH3.flux, by = dat$valve, method = 'trap')
 
 
 
@@ -219,13 +212,13 @@ source("functions/mintegrate.R")
 
 <<<<<<< HEAD
 dat$flux.treat <- mintegrate(dat$NH3.flux, dat$elapsed.time)
-
+dat$flux.time <- dat$flux.treat * 152
 
 
 #Calculation of total flux over time#
 
 dat$flux.treat[is.na(dat$flux.treat)] <- dat$NH3.flux[1]
-=======
+
 # looking af flux:
 ggplot(dat, aes(elapsed.time.dec, NH3.flux, color = treatment)) + geom_point() + geom_line(aes(group = valve)) #+ xlim(0, 50)
 
@@ -260,7 +253,7 @@ ggplot(dat, aes(elapsed.time.dec, cum.emis, color = treatment)) + geom_point() +
 dat$group <- factor(dat$group, levels = c("Open plot", "No acid", "Low acid", "Medium acid", "High acid"))
 
 # Plot NH3 Flux Over Time by Treatment
-g <- ggplot(dat, aes(x = elapsed.time, y = flux.time, color = group)) +
+g <- ggplot(dat, aes(x = elapsed.time, y = NH3.flux, color = group)) +
   geom_point(size = 1.5, alpha = 0.8) + 
   geom_line(aes(group=valve)) + # Assuming 'valve' defines the individual line groupings
   scale_color_viridis_d() +
@@ -290,35 +283,39 @@ g <- ggplot(dat, aes(x = elapsed.time, y = flux.time, color = group)) +
   guides(color = guide_legend(nrow = 2)); g
 
 ################################################################################################################################
-# Create a duplicate of the original dataframe
+
+# Using mintegrate to calculate cumulative emissions (flux.treat) grouped by valve
+dat$flux.treat <- mintegrate(dat$elapsed.time, dat$NH3.flux, by = dat$valve, method = 'trap')
+
+
+#Create a duplicate of the original dataframe to manipulate without affecting the original data
 dat_duplicate <- copy(dat)
 
-# Remove row with elapsed.time 139
+#Remove rows with elapsed.time equal to 139
 dat_duplicate <- dat_duplicate %>% filter(elapsed.time != 139)
 
-
-# Calculate cumulative emissions by treatment (using flux.treat)
+#Calculate cumulative emissions by treatment
 dat_duplicate <- dat_duplicate %>%
   mutate(cum.emis = flux.treat) %>% 
   group_by(treatment)
 
-# Filter for the last time point by valve and treatment
+#Filter the data to get the last time point for each valve-treatment group
 dat_last <- dat_duplicate %>%
   group_by(valve, treatment) %>%
-  filter(row_number() == n()) %>%
+  filter(row_number() == n()) %>%  # Select the last observation per treatment group
   ungroup()
 
-# Summarize data for plotting (one point per treatment group)
+#Create a summary dataset for plotting (one point per treatment group)
 isummMac_last <- dat_last %>%
   select(valve, treatment, cum.emis) %>%
-  distinct()
+  distinct()  
 
-# Average cumulative emissions for plotting (average of last points for each treatment)
+#Summarize cumulative emissions by treatment (average across last time points for each treatment)
 esummMac_last <- isummMac_last %>%
   group_by(treatment) %>%
   summarise(cum.emis = mean(cum.emis, na.rm = TRUE), .groups = 'drop')
 
-# Plotting cumulative emissions by treatment (including boxplot)
+#Plot the cumulative emissions for each treatment, including a boxplot for average values
 cumsum_plot <- ggplot(isummMac_last, aes(x = treatment, y = cum.emis, color = treatment)) +  
   geom_point(size = 2, alpha = 0.7) +  
   geom_boxplot(data = esummMac_last, aes(x = treatment, y = cum.emis, color = treatment), 
@@ -336,7 +333,7 @@ cumsum_plot <- ggplot(isummMac_last, aes(x = treatment, y = cum.emis, color = tr
     '2.9' = 'Medium acid',
     'bkg' = 'Background',
     '5.7' = 'High acid'
-  )) +  # Custom labels for the x-axis
+  )) +  
   theme(
     axis.title = element_text(size = 14),
     axis.text = element_text(size = 12),
@@ -425,13 +422,6 @@ tan_loss_plot <- ggplot() +
 
 # Display the plot
 print(tan_loss_plot)
-
-
-
-
-
-
-
 
 
 
