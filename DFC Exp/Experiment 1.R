@@ -65,6 +65,8 @@ for (i in seq_along(split_valda)) {
 }
 dat<- new_da
 
+# keeping an elapsed.time with more decimals for cum.emis calc
+dat$elapsed.time.dec <- dat$elapsed.time
 
 #Rounding elapsed time to days#
 dat$elapsed.time <- round(as.numeric(dat$elapsed.time))
@@ -198,9 +200,24 @@ dat$NH3.flux <- (dat$n * M.N * dat$air.flow) / dat$dfc.area
 dat$NH3.flux <- as.numeric(dat$NH3.flux)
 class(dat$NH3.flux)
 
+#Update by Ali#
+source("functions/mintegrate.R")
+
+dat$flux.treat <- mintegrate(dat$NH3.flux, dat$elapsed.time)
+
+#Calculation of total flux over time#
+
+dat$flux.treat[is.na(dat$flux.treat)] <- dat$NH3.flux[1]
+
+#Calculation of total flux over time, time from start to last start (19 x 8 min)#
+dat$flux.time <- dat$flux.treat * 152
+
+
+
 ################################################################################################################################
 source("functions/mintegrate.R")
 
+<<<<<<< HEAD
 dat$flux.treat <- mintegrate(dat$NH3.flux, dat$elapsed.time)
 
 
@@ -208,10 +225,33 @@ dat$flux.treat <- mintegrate(dat$NH3.flux, dat$elapsed.time)
 #Calculation of total flux over time#
 
 dat$flux.treat[is.na(dat$flux.treat)] <- dat$NH3.flux[1]
+=======
+# looking af flux:
+ggplot(dat, aes(elapsed.time.dec, NH3.flux, color = treatment)) + geom_point() + geom_line(aes(group = valve)) #+ xlim(0, 50)
+
+#Calculation of cumulative flux:
+dat$elapsed.time.dec <- as.numeric(dat$elapsed.time.dec)
+dat$cum.emis <- mintegrate(dat$elapsed.time.dec, dat$NH3.flux, by = dat$valve, 'trap')
+ggplot(dat, aes(elapsed.time.dec, cum.emis, color = treatment)) + geom_point() + geom_line(aes(group = valve))
+
+# # code to check one valve at the time to see what happens, because something is not right above...
+# test <- dat[dat$valve == '1', ]
+# test$cum.emis <- mintegrate(test$elapsed.time.dec, test$NH3.flux, 'trap')
+# ggplot(test, aes(elapsed.time.dec, cum.emis, color = treatment)) + geom_point() + geom_line() + 
+#   geom_point(data = test, aes(elapsed.time, NH3.flux)) 
+# # works when we run them separately
+
+# making a loop instead of using the 'by' arg in mintegrate:
+for(i in unique(dat$valve)){
+  dat[dat$valve == i, ]$cum.emis <- mintegrate(dat[dat$valve == i, ]$elapsed.time.dec, 
+                                      dat[dat$valve == i, ]$NH3.flux, 'trap')
+}
+
+# now it works:
+ggplot(dat, aes(elapsed.time.dec, cum.emis, color = treatment)) + geom_point() + geom_line(aes(group = valve))
+>>>>>>> 39e285fd304ba84a0f70d68cb92c042420500d3e
 
 
-#Calculation of total flux over time, time from start to last start (19 x 8 min)#
-dat$flux.time <- dat$flux.treat * 152
 
 ###############################################################################################################################
 
