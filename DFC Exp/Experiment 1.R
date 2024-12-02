@@ -201,17 +201,31 @@ class(dat$NH3.flux)
 ################################################################################################################################
 source("functions/mintegrate.R")
 
+# looking af flux:
+ggplot(dat, aes(elapsed.time, NH3.flux, color = treatment)) + geom_point() + geom_line(aes(group = valve)) #+ xlim(0, 50)
 
-#Calculation of total flux over time#
-dat$flux.treat <- mintegrate(dat$NH3.flux, 2, mean)
-dat$flux.treat[is.na(dat$flux.treat)] <- dat$NH3.flux[1]
+#Calculation of cumulative flux:
+dat$cum.emis <- mintegrate(dat$elapsed.time, dat$NH3.flux, by = dat$valve, 'trap')
+ggplot(dat, aes(elapsed.time, cum.emis, color = treatment)) + geom_point() + geom_line(aes(group = valve))
+
+# # code to check one valve at the time to see what happens, because something is not right above...
+# test <- dat[dat$valve == '1', ]
+# test$cum.emis <- mintegrate(test$elapsed.time, test$NH3.flux, 'trap')
+# ggplot(test, aes(elapsed.time, cum.emis, color = treatment)) + geom_point() + geom_line() + 
+#   geom_point(data = test, aes(elapsed.time, NH3.flux)) 
+# # works when we run them separatley
+
+# making a loop instead of useing the 'by' arg in mintegrate:
+for(i in unique(dat$valve)){
+  dat[dat$valve == i, ]$cum.emis <- mintegrate(dat[dat$valve == i, ]$elapsed.time, 
+                                      dat[dat$valve == i, ]$NH3.flux, 'trap')
+}
+
+# now it works:
+ggplot(dat, aes(elapsed.time, cum.emis, color = treatment)) + geom_point() + geom_line(aes(group = valve))
 
 
-#Calculation of total flux over time, time from start to last start (19 x 8 min)#
-dat$flux.time <- dat$flux.treat * 152
 
-#Cumulative emissions#
-dat <- mutate(group_by(dat, treatment), cum.emis = cumsum(flux.time))
 ###############################################################################################################################
 head(dat$flux.treat)
 
