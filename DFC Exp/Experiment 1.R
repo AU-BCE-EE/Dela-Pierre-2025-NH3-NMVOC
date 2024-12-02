@@ -65,6 +65,8 @@ for (i in seq_along(split_valda)) {
 }
 dat<- new_da
 
+# keeping an elapsed.time with more decimals for cum.emis calc
+dat$elapsed.time.dec <- dat$elapsed.time
 
 #Rounding elapsed time to days#
 dat$elapsed.time <- round(as.numeric(dat$elapsed.time))
@@ -202,27 +204,28 @@ class(dat$NH3.flux)
 source("functions/mintegrate.R")
 
 # looking af flux:
-ggplot(dat, aes(elapsed.time, NH3.flux, color = treatment)) + geom_point() + geom_line(aes(group = valve)) #+ xlim(0, 50)
+ggplot(dat, aes(elapsed.time.dec, NH3.flux, color = treatment)) + geom_point() + geom_line(aes(group = valve)) #+ xlim(0, 50)
 
 #Calculation of cumulative flux:
-dat$cum.emis <- mintegrate(dat$elapsed.time, dat$NH3.flux, by = dat$valve, 'trap')
-ggplot(dat, aes(elapsed.time, cum.emis, color = treatment)) + geom_point() + geom_line(aes(group = valve))
+dat$elapsed.time.dec <- as.numeric(dat$elapsed.time.dec)
+dat$cum.emis <- mintegrate(dat$elapsed.time.dec, dat$NH3.flux, by = dat$valve, 'trap')
+ggplot(dat, aes(elapsed.time.dec, cum.emis, color = treatment)) + geom_point() + geom_line(aes(group = valve))
 
 # # code to check one valve at the time to see what happens, because something is not right above...
 # test <- dat[dat$valve == '1', ]
-# test$cum.emis <- mintegrate(test$elapsed.time, test$NH3.flux, 'trap')
-# ggplot(test, aes(elapsed.time, cum.emis, color = treatment)) + geom_point() + geom_line() + 
+# test$cum.emis <- mintegrate(test$elapsed.time.dec, test$NH3.flux, 'trap')
+# ggplot(test, aes(elapsed.time.dec, cum.emis, color = treatment)) + geom_point() + geom_line() + 
 #   geom_point(data = test, aes(elapsed.time, NH3.flux)) 
-# # works when we run them separatley
+# # works when we run them separately
 
-# making a loop instead of useing the 'by' arg in mintegrate:
+# making a loop instead of using the 'by' arg in mintegrate:
 for(i in unique(dat$valve)){
-  dat[dat$valve == i, ]$cum.emis <- mintegrate(dat[dat$valve == i, ]$elapsed.time, 
+  dat[dat$valve == i, ]$cum.emis <- mintegrate(dat[dat$valve == i, ]$elapsed.time.dec, 
                                       dat[dat$valve == i, ]$NH3.flux, 'trap')
 }
 
 # now it works:
-ggplot(dat, aes(elapsed.time, cum.emis, color = treatment)) + geom_point() + geom_line(aes(group = valve))
+ggplot(dat, aes(elapsed.time.dec, cum.emis, color = treatment)) + geom_point() + geom_line(aes(group = valve))
 
 
 
