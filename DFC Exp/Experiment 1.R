@@ -198,12 +198,14 @@ dat$n <- atm.con / (g.con * dat$air.temp.K) * dat$NH3_corr * 10^-9  # mol * L^-1
 #Calculation of flux, from mol * L^-1 to g.NH3 * min^-1 * m^-2#
 dat$NH3.flux <- (dat$n * M.N * dat$air.flow) / dat$dfc.area
 dat$NH3.flux <- as.numeric(dat$NH3.flux)
-class(dat$NH3.flux)
+dat$NH3.flux <- as.numeric(dat$NH3.flux)
+dat$NH3.flux <- dat$NH3.flux * 1e6
 
 #Update by Ali#
 source("functions/mintegrate.R")
 
 dat$flux.treat <- mintegrate(dat$elapsed.time, dat$NH3.flux, by = dat$valve, method = 'trap')
+
 
 
 
@@ -249,6 +251,8 @@ ggplot(dat, aes(elapsed.time.dec, cum.emis, color = treatment)) + geom_point() +
 ###############################################################################################################################
 
 # Plot NH3 Flux Over Time by Treatment#
+
+
 # Custom order for treatments
 dat$group <- factor(dat$group, levels = c("Open plot", "No acid", "Low acid", "Medium acid", "High acid"))
 
@@ -258,11 +262,14 @@ g <- ggplot(dat, aes(x = elapsed.time, y = NH3.flux, color = group)) +
   geom_line(aes(group=valve)) + # Assuming 'valve' defines the individual line groupings
   scale_color_viridis_d() +
   scale_x_continuous(breaks = seq(0, 290, by = 30)) +
+  scale_y_continuous(
+    breaks = seq(0, 3000, by = 600),  # Adjust breaks to your desired range
+  ) +
   
   # Axis labels and title, with ammonia flux
   labs(
     title = expression(paste("NH"[3], " Flux Over Time")),
-    y = expression(paste(NH[3], " Flux (g NH"[3]-N, " * min"^-1, " * m"^-2, ")")),
+    y = expression(paste(NH[3], " Flux (µg NH"[3]-N, " * min"^-1, " * m"^-2, ")")),
     x = "Elapsed Time (hours)",
     color = "Treatment"
   ) +
@@ -286,7 +293,6 @@ g <- ggplot(dat, aes(x = elapsed.time, y = NH3.flux, color = group)) +
 
 # Using mintegrate to calculate cumulative emissions (flux.treat) grouped by valve
 dat$flux.treat <- mintegrate(dat$elapsed.time, dat$NH3.flux, by = dat$valve, method = 'trap')
-
 
 #Create a duplicate of the original dataframe to manipulate without affecting the original data
 dat_duplicate <- copy(dat)
@@ -324,7 +330,7 @@ cumsum_plot <- ggplot(isummMac_last, aes(x = treatment, y = cum.emis, color = tr
   labs(
     title = NULL,  
     x = "Treatment",  
-    y = expression(paste(NH[3], " Cumulative emissions (g NH"[3]-N, " * min"^-1, " * m"^-2, ")"))  
+    y = expression(paste(NH[3], " Cumulative emissions (µg NH"[3]-N, " * min"^-1, " * m"^-2, ")"))  
   ) + 
   scale_x_discrete(labels = c(
     '0-bls' = 'Open plot',
