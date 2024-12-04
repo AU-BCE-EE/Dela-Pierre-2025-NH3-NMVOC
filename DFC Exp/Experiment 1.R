@@ -168,7 +168,7 @@ dat <- left_join(dat, weather, by = c('date.time' = 'date.time.weather'))
 dat$temp <- as.numeric(dat$temp)
 dat$air.temp.K <- dat$temp + 273.15
 ################################################################################################################################
-
+#NH3 flux calculation#
 
 #NH3 flux prerequisite components#
 #Air flow Calculation#
@@ -201,58 +201,10 @@ dat$NH3.flux <- as.numeric(dat$NH3.flux)
 dat$NH3.flux <- as.numeric(dat$NH3.flux)
 dat$NH3.flux <- dat$NH3.flux * 1e6
 
-#Update by Ali#
-source("functions/mintegrate.R")
-
-dat$flux.treat <- mintegrate(dat$elapsed.time, dat$NH3.flux, by = dat$valve, method = 'trap')
-
-
-
-
-################################################################################################################################
-source("functions/mintegrate.R")
-
-<<<<<<< HEAD
-dat$flux.treat <- mintegrate(dat$NH3.flux, dat$elapsed.time)
-dat$flux.time <- dat$flux.treat * 152
-
-
-#Calculation of total flux over time#
-
-dat$flux.treat[is.na(dat$flux.treat)] <- dat$NH3.flux[1]
-
-# looking af flux:
-ggplot(dat, aes(elapsed.time.dec, NH3.flux, color = treatment)) + geom_point() + geom_line(aes(group = valve)) #+ xlim(0, 50)
-
-#Calculation of cumulative flux:
-dat$elapsed.time.dec <- as.numeric(dat$elapsed.time.dec)
-dat$cum.emis <- mintegrate(dat$elapsed.time.dec, dat$NH3.flux, by = dat$valve, 'trap')
-ggplot(dat, aes(elapsed.time.dec, cum.emis, color = treatment)) + geom_point() + geom_line(aes(group = valve))
-
-# # code to check one valve at the time to see what happens, because something is not right above...
-# test <- dat[dat$valve == '1', ]
-# test$cum.emis <- mintegrate(test$elapsed.time.dec, test$NH3.flux, 'trap')
-# ggplot(test, aes(elapsed.time.dec, cum.emis, color = treatment)) + geom_point() + geom_line() + 
-#   geom_point(data = test, aes(elapsed.time, NH3.flux)) 
-# # works when we run them separately
-
-# making a loop instead of using the 'by' arg in mintegrate:
-for(i in unique(dat$valve)){
-  dat[dat$valve == i, ]$cum.emis <- mintegrate(dat[dat$valve == i, ]$elapsed.time.dec, 
-                                      dat[dat$valve == i, ]$NH3.flux, 'trap')
-}
-
-# now it works:
-ggplot(dat, aes(elapsed.time.dec, cum.emis, color = treatment)) + geom_point() + geom_line(aes(group = valve))
->>>>>>> 39e285fd304ba84a0f70d68cb92c042420500d3e
-
-
-
 ###############################################################################################################################
+#NH3 flux plotting#
 
 # Plot NH3 Flux Over Time by Treatment#
-
-
 # Custom order for treatments
 dat$group <- factor(dat$group, levels = c("Open plot", "No acid", "Low acid", "Medium acid", "High acid"))
 
@@ -290,15 +242,17 @@ g <- ggplot(dat, aes(x = elapsed.time, y = NH3.flux, color = group)) +
   guides(color = guide_legend(nrow = 2)); g
 
 ################################################################################################################################
-
-# Using mintegrate to calculate cumulative emissions (flux.treat) grouped by valve
-dat$flux.treat <- mintegrate(dat$elapsed.time, dat$NH3.flux, by = dat$valve, method = 'trap')
+#Cumulative flux plotting#
 
 #Create a duplicate of the original dataframe to manipulate without affecting the original data
 dat_duplicate <- copy(dat)
 
 #Remove rows with elapsed.time equal to 139
 dat_duplicate <- dat_duplicate %>% filter(elapsed.time != 139)
+
+# Using mintegrate to calculate cumulative emissions (flux.treat) grouped by valve
+source("functions/mintegrate.R")
+dat_duplicate$flux.treat <- mintegrate(dat_duplicate$elapsed.time, dat_duplicate$NH3.flux, by = dat_duplicate$valve, method = 'trap')
 
 #Calculate cumulative emissions by treatment
 dat_duplicate <- dat_duplicate %>%
@@ -350,93 +304,232 @@ cumsum_plot <- ggplot(isummMac_last, aes(x = treatment, y = cum.emis, color = tr
   ); cumsum_plot
 
 ################################################################################################################################
-###############################################################################################################################
-###############################################################################################################################
 
+# Define global TAN value (mg/L) and chamber volume (Liters)
+Tan.volume <- 1.33  # Liters per chamber
+Tan.conc <- 2519    # TAN concentration in mg/L
 
-#Create a duplicate of the original dataframe
-dat_duplicate <- copy(dat)
+# Convert TAN from mg/L to micrograms using the chamber volume (total TAN in µg)
+total_tan <- Tan.conc * Tan.volume * 1000  # Convert to micrograms (µg)
 
-#Remove row with elapsed.time == 139
-dat_duplicate <- dat_duplicate %>% filter(elapsed.time != 139)
-
-#Ensure cumulative emissions are calculated by treatment
-dat_duplicate <- mutate(group_by(dat_duplicate, treatment), cum.emis = cumsum(flux.time))
-
-#ilter for the last time point by treatment group to find the final cumulative emissions
+# Filter for the last time point to calculate TAN Loss Fraction
 dat_last <- dat_duplicate %>%
   group_by(treatment) %>%
   filter(elapsed.time == max(elapsed.time)) %>%
   ungroup()
 
-#Create the 'tan_data' data frame (this will contain the total TAN values for each treatment)
-tan_data <- data.frame(
-  treatment = c('0-bls', '0-bp', '1.5', '2.9', '5.7'),
-  total_tan = c(2478.6055, 2519.7095, 2222.396, 1479.7655, 1131.413)
-)
-
-# Define chamber volume in liters
-Tan.volume <- 1.33  # Liters per chamber
-
-# Convert TAN from mg/L to grams using the chamber volume
-tan_data$total_tan <- tan_data$total_tan * Tan.volume / 1000  
-
-#Join your cumulative emissions data with the 'tan_data' for each treatment
-dat_last <- left_join(dat_last, tan_data, by = "treatment")
-
-#Calculate TAN loss over time (using cumulative NH3 emissions and total TAN values)
-dat_last <- dat_last %>%
+# Calculate TAN fractional loss using global total TAN value
+dat_tan <- dat_last %>%
   mutate(
-    TAN_loss_percent = ( cum.emis / total_tan) * 100  
+    TAN_loss_fraction = cum.emis / total_tan  # Fractional loss of TAN (no *100 for percentage)
   )
 
-#Create summary data for the boxplot
-#Cumulative emissions (isummMac_last)
-isummMac_last <- dat_last %>%
-  select(treatment, TAN_loss_percent) %>%
+# Prepare summary data for visualization
+# Individual TAN fractional loss data
+isummMac_last <- dat_tan %>%
+  select(treatment, TAN_loss_fraction) %>%
   distinct()
 
-#Average TAN loss percentage for plotting (esummMac_last)
+# Average TAN loss fraction for plotting
 esummMac_last <- isummMac_last %>%
   group_by(treatment) %>%
-  summarise(TAN_loss_percent = mean(TAN_loss_percent, na.rm = TRUE), .groups = 'drop')
+  summarise(TAN_loss_fraction = mean(TAN_loss_fraction, na.rm = TRUE), .groups = 'drop')
 
-#Plotting TAN loss percentage using boxplot
-
-# Create the boxplot for TAN loss percentage
-tan_loss_plot <- ggplot() + 
-  # Boxplot for TAN loss percentage
-  geom_boxplot(data = dat_last, aes(x = treatment, y = TAN_loss_percent, color = treatment, fill = treatment), 
-               alpha = 0.3, show.legend = FALSE) +
-  
-  # Scatter points for the TAN loss percentage (individual observations)
-  geom_point(data = isummMac_last, aes(x = treatment, y = TAN_loss_percent, color = treatment), 
-             size = 3, alpha = 0.7) + 
-  
-  theme_bw() +  # Clean theme
+# Plot the TAN loss fraction for each treatment, including a boxplot for average values
+tan_loss_plot <- ggplot(isummMac_last, aes(x = treatment, y = TAN_loss_fraction, color = treatment)) +  
+  geom_point(size = 2, alpha = 0.7) +  
+  geom_boxplot(data = esummMac_last, aes(x = treatment, y = TAN_loss_fraction, color = treatment), 
+               show.legend = F) +  
+  theme_bw() +
   labs(
-    title = "TAN Loss Percentage by Treatment",
-    x = "Treatment", 
-    y = "TAN Loss Percentage (%)"  
-  ) +
+    title = NULL,  
+    x = "Treatment",  
+    y = "Fractional TAN Loss"  # Y-axis label for fractional TAN loss
+  ) + 
+  scale_x_discrete(labels = c(
+    '0-bls' = 'Open plot',
+    '0-bp' = 'No acid',
+    '1.5' = 'Low acid',
+    '2.9' = 'Medium acid',
+    'bkg' = 'Background',
+    '5.7' = 'High acid'
+  )) +  
   theme(
     axis.title = element_text(size = 14),
     axis.text = element_text(size = 12),
-    plot.title = element_text(size = 16, hjust = 0.5),
-    axis.text.x = element_text(angle = 45, hjust = 1)  
+    strip.text = element_blank(),             
+    legend.title = element_blank(),                     
+    legend.position = "right",                          
+    axis.text.x = element_text(angle = 45, hjust = 1)
   )
 
 # Display the plot
 print(tan_loss_plot)
 
+## The end of Flavia experiment 1 ####
 
 
+#####################################################################################################################
+#####################################################################################################################
+#####################################################################################################################
+## N-Grass ####
+
+#NH3 flux plotting#
+
+# Filter the data 
+machine_applied_data <- filter(dat, treatment %in% c('0-bls'))  
+handheld_applied_data <- filter(dat, treatment %in% c('0-bp', '1.5', '2.9', '5.7'))  
+
+# Combine them for the plot
+flux_data <- bind_rows(machine_applied_data, handheld_applied_data)
+
+# Define colors for the two groups: Machine-applied and Handheld-applied slurry
+flux_data <- flux_data %>%
+  mutate(treatment_group = ifelse(treatment == '0-bls', 'Machine-applied slurry', 'Handheld-applied slurry'))
+
+# Create the flux plot with colored treatments (Machine vs Handheld)
+flux_plot <- ggplot(flux_data, aes(x = elapsed.time, y = NH3.flux, color = treatment_group)) +
+  geom_point(size = 1.5, alpha = 0.8) + 
+  geom_line(aes(group = valve)) + # Assuming 'valve' defines the individual line groupings
+  
+  # Set custom colors for the two groups
+  scale_color_manual(values = c('Machine-applied slurry' = '#a8d08d',  # Green
+                                'Handheld-applied slurry' = '#ff7f0e')) +  # Orange
+  
+  labs(
+    y = expression(paste(NH[3], " Flux (µg NH"[3]-N, " * min"^-1, " * m"^-2, ")")),
+    x = "Elapsed Time (hours)",
+    color = "Slurry Application"
+  ) +
+  theme_bw() +
+  theme(
+    axis.title = element_text(size = 14),       
+    axis.text = element_text(size = 12),      
+    plot.title = element_text(size = 16, hjust = 0.5),
+    legend.text = element_text(size = 12),      
+    legend.title = element_blank(),             
+    legend.position = "bottom"        
+  ); flux_plot
 
 
+output_folder <- '/Users/AU775281/Documents/PhD/Meetings/N Grass meeting' 
+output_file <- file.path(output_folder, "flux_plot.png")  
+
+# Save the plot to the designated folder
+ggsave(output_file, plot = flux_plot, width = 10, height = 6, dpi = 300)
+#####################################################################################################################
+#####################################################################################################################
+
+#Cumulative flux plotting#
+
+# Calculate cumulative emissions using mintegrate
+source("functions/mintegrate.R")
+dat$flux.treat <- mintegrate(dat$elapsed.time, dat$NH3.flux, by = dat$valve, method = 'trap')
+
+# Create a duplicate of the original dataframe to manipulate without affecting the original data
+dat_duplicate <- copy(dat)
+
+# Remove rows with elapsed.time equal to 139
+dat_duplicate <- dat_duplicate %>% filter(elapsed.time != 139)
+
+# Calculate cumulative emissions by treatment
+dat_duplicate <- dat_duplicate %>%
+  mutate(cum.emis = flux.treat) %>% 
+  group_by(treatment)
+
+# Filter the data to get the last time point for each valve-treatment group
+dat_last <- dat_duplicate %>%
+  group_by(valve, treatment) %>%
+  filter(row_number() == n()) %>%  # Select the last observation per treatment group
+  ungroup()
+
+# Add the group column to isummMac_last to indicate machine vs handheld
+isummMac_last <- isummMac_last %>%
+  mutate(group = ifelse(treatment == "0-bls", "Machine-applied slurry", "Handheld-applied slurry"))
+
+# Plot the cumulative emissions for each treatment, including a boxplot for average values
+cumsum_plot <- ggplot(isummMac_last, aes(x = treatment, y = cum.emis, color = group)) +  
+  geom_point(size = 2, alpha = 0.7) +  
+  geom_boxplot(data = esummMac_last, aes(x = treatment, y = cum.emis, fill = group), 
+               show.legend = F) +  # Use 'fill' for boxplot's internal color
+  theme_bw() +
+  labs(
+    title = NULL,  
+    x = "Treatment",  
+    y = expression(paste(NH[3], " Cumulative emissions (µg NH"[3]-N, " * min"^-1, " * m"^-2, ")"))  
+  ) + 
+  scale_x_discrete(labels = c(
+    '0-bls' = 'M',  
+    '0-bp' = 'H',  
+    '1.5' = 'H',
+    '2.9' = 'H',
+    '5.7' = 'H'
+  )) +  
+  scale_color_manual(values = c("Machine-applied slurry" = "dodgerblue4", "Handheld-applied slurry" = "forestgreen")) +  # Custom colors
+  scale_fill_manual(values = c("Machine-applied slurry" = "dodgerblue4", "Handheld-applied slurry" = "forestgreen")) +  # Custom fill colors
+  theme(
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    strip.text = element_blank(),             
+    legend.title = element_blank(),                     
+    legend.position = "right",                          
+    axis.text.x = element_text(angle = 0, hjust = 0.5)
+  ); print(cumsum_plot)
+
+output_folder <- '/Users/AU775281/Documents/PhD/Meetings/N Grass meeting' 
+output_file <- file.path(output_folder, "cumsum_plot.png")  
+
+# Save the plot to the designated folder
+ggsave(output_file, plot = cumsum_plot, width = 10, height = 6, dpi = 300)
+
+#####################################################################################################################
+#####################################################################################################################
+
+#NH3 flux with Sd plotting#
+
+# Calculate mean and standard deviation by treatment group and elapsed time
+flux_stats <- flux_data %>%
+  group_by(treatment_group, elapsed.time) %>%
+  summarise(
+    mean_flux = mean(NH3.flux, na.rm = TRUE),
+    sd_flux = sd(NH3.flux, na.rm = TRUE)
+  )
+
+# Plot with error bars (standard deviation) and different colors for error bars
+flux_plot_with_errorbars <- ggplot(flux_stats, aes(x = elapsed.time, y = mean_flux, color = treatment_group)) +
+  geom_point(size = 1.5, alpha = 0.8) + 
+  geom_line(aes(group = treatment_group)) +  # Assuming 'treatment_group' defines the individual line groupings
+  
+  # Adding error bars with colors based on treatment group
+  geom_errorbar(aes(ymin = mean_flux - sd_flux, ymax = mean_flux + sd_flux, color = treatment_group),
+                width = 0.2, size = 1) + # Error bars
+  
+  scale_color_manual(values = c('Machine-applied slurry' = '#a8d08d',  # Green
+                                'Handheld-applied slurry' = '#ff7f0e')) +  # Orange
+  
+  labs(
+    y = expression(paste(NH[3], " Flux (µg NH"[3]-N, " * min"^-1, " * m"^-2, ")")),
+    x = "Elapsed Time (hours)",
+    color = "Slurry Application"
+  ) +
+  theme_bw() +
+  theme(
+    axis.title = element_text(size = 14),       
+    axis.text = element_text(size = 12),      
+    plot.title = element_text(size = 16, hjust = 0.5),
+    legend.text = element_text(size = 12),      
+    legend.title = element_blank(),             
+    legend.position = "bottom"        
+  ); (flux_plot_with_errorbars)
 
 
+output_folder <- '/Users/AU775281/Documents/PhD/Meetings/N Grass meeting' 
+output_file <- file.path(output_folder, "flux_plot_with_errorbars.png")  
 
+# Save the plot to the designated folder
+ggsave(output_file, plot = flux_plot_with_errorbars, width = 10, height = 6, dpi = 300)
 
+## The N Grass experiment 1 ####
 
 
 
@@ -453,101 +546,178 @@ print(tan_loss_plot)
 ############################################################################################
 
 # Summing up cumulative emissions by treatment over the entire period
-total_emissions <- dat %>%
-  group_by(treatment) %>%
-  summarize(total_emission = sum(cum.emis, na.rm = TRUE))
+#total_emissions <- dat %>%
+#group_by(treatment) %>%
+#summarize(total_emission = sum(cum.emis, na.rm = TRUE))
 
 # Bar graph of cumulative emissions by treatment (assuming 'treatment' is your grouping variable)
-ggplot(total_emissions, aes(x = treatment, y = total_emission, fill = treatment)) + 
-  geom_bar(stat = "identity", show.legend = FALSE) +   # Create bar chart, remove legend for fill
-  scale_fill_viridis_d() +                             # Use a perceptually uniform color scale
-  labs(
-    title = "Cumulative Emissions by Group",
-    y = expression(paste("Total Emissions (g NH"[3], " * min"^-1, " * m"^-2, ")")), # Y-axis label
-    x = "Group"
-  ) +
-  theme_bw() +                                         # Clean theme
-  theme(
-    axis.title = element_text(size = 14),              # Axis title font size
-    axis.text = element_text(size = 12),               # Axis text font size
-    plot.title = element_text(size = 16, hjust = 0.5), # Centered plot title
-    strip.text = element_text(size = 14),              # Font size for facet strip text
-    legend.text = element_text(size = 12),             # Font size for legend text
-    legend.title = element_blank(),                    # Remove legend title
-    legend.position = "bottom"                          # Place legend at the bottom
-  )
+#ggplot(total_emissions, aes(x = treatment, y = total_emission, fill = treatment)) + 
+#geom_bar(stat = "identity", show.legend = FALSE) +   # Create bar chart, remove legend for fill
+#scale_fill_viridis_d() +                             # Use a perceptually uniform color scale
+#labs(
+#title = "Cumulative Emissions by Group",
+#y = expression(paste("Total Emissions (g NH"[3], " * min"^-1, " * m"^-2, ")")), # Y-axis label
+#x = "Group"
+#) +
+#theme_bw() +                                         # Clean theme
+#theme(
+#    axis.title = element_text(size = 14),              # Axis title font size
+#    axis.text = element_text(size = 12),               # Axis text font size
+#    plot.title = element_text(size = 16, hjust = 0.5), # Centered plot title
+#    strip.text = element_text(size = 14),              # Font size for facet strip text
+#    legend.text = element_text(size = 12),             # Font size for legend text
+#    legend.title = element_blank(),                    # Remove legend title
+#    legend.position = "bottom"                          # Place legend at the bottom
+#  )#
 
 
 
 # Summing up cumulative emissions by group (instead of treatment)
-total_emissions_by_group <- dat %>%
-  group_by(group) %>%
-  summarize(total_emission = sum(cum.emis, na.rm = TRUE))
+#total_emissions_by_group <- dat %>%
+#  group_by(group) %>%
+#  summarize(total_emission = sum(cum.emis, na.rm = TRUE))
 
 # First plot (g1) - NH3 Flux Over Time by Group
-g1 <- ggplot(dat, aes(x = elapsed.time, y = flux.time, color = group)) +
-  geom_point(size = 1.5, alpha = 0.8) +      # Scatter plot with larger points and transparency
-  geom_line() +                              # Connect points to show trends over time
-  scale_color_viridis_d() +                  # Color scale with perceptually uniform colors
-  scale_x_continuous(breaks = seq(0, 290, by = 30)) +  # X-axis breaks every 30 minutes for readability
-  
-  # Axis labels and title, with ammonia flux units in the y-axis label
-  labs(
-    title = "NH3 Flux Over Time by Group",  # Update title to Group
-    y = expression(paste(NH[3], " Flux (g NH"[3], " * min"^-1, " * m"^-2, ")")),  # Y-axis label with flux units
-    x = "Elapsed Time (hours)",
-    color = "Group"  # Change legend label to "Group"
-  ) +
-  
-  # Theme customizations for a publication-quality look
-  theme_bw() +  # Use a clean, black-and-white theme
-  theme(
-    axis.title = element_text(size = 14),       # Font size for axis titles
-    axis.text = element_text(size = 12),        # Font size for axis text
-    plot.title = element_text(size = 16, hjust = 0.5),  # Centered plot title
-    strip.text = element_text(size = 14),       # Font size for facet strip text
-    legend.text = element_text(size = 12),      # Font size for legend text
-    legend.title = element_blank(),             # Remove legend title
-    legend.position = "bottom"                  # Place legend at the bottom
-  ) +
-  
-  # Set up legend to appear in multiple rows for better readability
-  guides(color = guide_legend(nrow = 2))
+#g1 <- ggplot(dat, aes(x = elapsed.time, y = flux.time, color = group)) +
+#  geom_point(size = 1.5, alpha = 0.8) +      # Scatter plot with larger points and transparency
+#  geom_line() +                              # Connect points to show trends over time
+#  scale_color_viridis_d() +                  # Color scale with perceptually uniform colors
+#  scale_x_continuous(breaks = seq(0, 290, by = 30)) +  # X-axis breaks every 30 minutes for readability
+
+# Axis labels and title, with ammonia flux units in the y-axis label
+#  labs(
+#    title = "NH3 Flux Over Time by Group",  # Update title to Group
+#    y = expression(paste(NH[3], " Flux (g NH"[3], " * min"^-1, " * m"^-2, ")")),  # Y-axis label with flux units
+#    x = "Elapsed Time (hours)",
+#    color = "Group"  # Change legend label to "Group"
+#  ) +
+
+# Theme customizations for a publication-quality look
+#  theme_bw() +  # Use a clean, black-and-white theme
+#  theme(
+#    axis.title = element_text(size = 14),       # Font size for axis titles
+#    axis.text = element_text(size = 12),        # Font size for axis text
+#    plot.title = element_text(size = 16, hjust = 0.5),  # Centered plot title
+#    strip.text = element_text(size = 14),       # Font size for facet strip text
+#    legend.text = element_text(size = 12),      # Font size for legend text
+#    legend.title = element_blank(),             # Remove legend title
+#    legend.position = "bottom"                  # Place legend at the bottom
+#  ) +
+#  
+#  # Set up legend to appear in multiple rows for better readability
+#  guides(color = guide_legend(nrow = 2))#
 
 # Second plot (g2) - Total NH3 Emissions by Group
-g2 <- ggplot(total_emissions_by_group, aes(x = group, y = total_emission, fill = group)) +
-  geom_bar(stat = "identity", width = 0.7) +  # Bar plot with adjusted width
-  labs(
-    x = NULL,  # Remove x-axis label
-    y = expression("Total NH"[3]*" Emissions (g)")  # y-axis label with NH3 and subscript 3
-  ) +
-  theme_minimal(base_size = 14) +  # Clean minimal theme with larger base font
-  theme(
-    plot.title = element_blank(),  # Remove plot title
-    axis.title.x = element_blank(),  # Remove x-axis title
-    axis.title.y = element_text(size = 14),  # Keep y-axis label
-    panel.grid.major.x = element_blank(),  # No vertical gridlines
-    panel.grid.minor = element_blank(),   # No minor gridlines
-    legend.position = "none"  # Remove legend entirely
-  ) +
-  scale_fill_brewer(palette = "Set2")  # Use the Set2 palette
+#g2 <- ggplot(total_emissions_by_group, aes(x = group, y = total_emission, fill = group)) +
+#  geom_bar(stat = "identity", width = 0.7) +  # Bar plot with adjusted width
+#  labs(
+#    x = NULL,  # Remove x-axis label
+#    y = expression("Total NH"[3]*" Emissions (g)")  # y-axis label with NH3 and subscript 3
+#  ) +
+#  theme_minimal(base_size = 14) +  # Clean minimal theme with larger base font
+#  theme(
+#    plot.title = element_blank(),  # Remove plot title
+#    axis.title.x = element_blank(),  # Remove x-axis title
+#    axis.title.y = element_text(size = 14),  # Keep y-axis label
+#    panel.grid.major.x = element_blank(),  # No vertical gridlines
+#    panel.grid.minor = element_blank(),   # No minor gridlines
+#    legend.position = "none"  # Remove legend entirely
+#  ) +
+#  scale_fill_brewer(palette = "Set2")  # Use the Set2 palette
 
 # Convert g2 to a grob (graphical object)
-g2_grob <- ggplotGrob(g2)
+#g2_grob <- ggplotGrob(g2)
 
 # Now combine g1 and g2 using annotation_custom()
-g1_with_inset <- g1 + 
-  annotation_custom(
-    grob = g2_grob,  # Add the g2 plot as a grob (graphical object)
-    xmin = 90, xmax = 175,  # X limits for the inset plot (adjust as needed)
-    ymin = 0.15, ymax = 0.3   # Y limits for the inset plot (adjust as needed)
-  )
+#g1_with_inset <- g1 + 
+#  annotation_custom(
+#    grob = g2_grob,  # Add the g2 plot as a grob (graphical object)
+#    xmin = 90, xmax = 175,  # X limits for the inset plot (adjust as needed)
+#    ymin = 0.15, ymax = 0.3   # Y limits for the inset plot (adjust as needed)
+#  )
 
 # Print the final plot with the inset
-print(g1_with_inset)
+#print(g1_with_inset)
 
 
 
+
+#TAN fraction loss plotting#
+
+#Create a duplicate of the original dataframe
+#dat_duplicate <- copy(dat)
+
+#Remove row with elapsed.time == 139
+#dat_duplicate <- dat_duplicate %>% filter(elapsed.time != 139)
+
+#Ensure cumulative emissions are calculated by treatment
+#dat_duplicate <- mutate(group_by(dat_duplicate, treatment), cum.emis = cumsum(flux.time))
+
+#ilter for the last time point by treatment group to find the final cumulative emissions
+#dat_last <- dat_duplicate %>%
+#  group_by(treatment) %>%
+#  filter(elapsed.time == max(elapsed.time)) %>%
+#  ungroup()
+
+#Create the 'tan_data' data frame (this will contain the total TAN values for each treatment)
+#tan_data <- data.frame(
+#  treatment = c('0-bls', '0-bp', '1.5', '2.9', '5.7'),
+#  total_tan = c(2478.6055, 2519.7095, 2222.396, 1479.7655, 1131.413)
+#)
+
+# Define chamber volume in liters
+#Tan.volume <- 1.33  # Liters per chamber#
+
+# Convert TAN from mg/L to grams using the chamber volume
+#tan_data$total_tan <- tan_data$total_tan * Tan.volume / 1000  
+
+#Join your cumulative emissions data with the 'tan_data' for each treatment
+#dat_last <- left_join(dat_last, tan_data, by = "treatment")
+
+#Calculate TAN loss over time (using cumulative NH3 emissions and total TAN values)
+#dat_last <- dat_last %>%
+#  mutate(
+#    TAN_loss_percent = ( cum.emis / total_tan) * 100  
+#  )
+
+#Create summary data for the boxplot
+#Cumulative emissions (isummMac_last)
+#isummMac_last <- dat_last %>%
+#  select(treatment, TAN_loss_percent) %>%
+#  distinct()
+
+#Average TAN loss percentage for plotting (esummMac_last)
+#esummMac_last <- isummMac_last %>%
+#  group_by(treatment) %>%
+#  summarise(TAN_loss_percent = mean(TAN_loss_percent, na.rm = TRUE), .groups = 'drop')#
+
+#Plotting TAN loss percentage using boxplot
+
+# Create the boxplot for TAN loss percentage
+#tan_loss_plot <- ggplot() + 
+  # Boxplot for TAN loss percentage
+#  geom_boxplot(data = dat_last, aes(x = treatment, y = TAN_loss_percent, color = treatment, fill = treatment), 
+#               alpha = 0.3, show.legend = FALSE) +
+#  
+  # Scatter points for the TAN loss percentage (individual observations)
+#  geom_point(data = isummMac_last, aes(x = treatment, y = TAN_loss_percent, color = treatment), 
+#             size = 3, alpha = 0.7) + 
+#  
+#  theme_bw() +  # Clean theme
+#  labs(
+#    title = "TAN Loss Percentage by Treatment",
+#    x = "Treatment", 
+#    y = "TAN Loss Percentage (%)"  
+#  ) +
+#  theme(
+#    axis.title = element_text(size = 14),
+#    axis.text = element_text(size = 12),
+#    plot.title = element_text(size = 16, hjust = 0.5),
+#    axis.text.x = element_text(angle = 45, hjust = 1)  
+#  )
+
+# Display the plot
+#print(tan_loss_plot)
 
 
 
