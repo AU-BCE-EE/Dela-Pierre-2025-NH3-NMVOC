@@ -1,3 +1,4 @@
+    
 ####### Flavia Project #########################
 ####### NH3 Emissions from DFC Chambers ########
 ####### Experiment 1 ###########################
@@ -244,6 +245,7 @@ g <- ggplot(dat, aes(x = elapsed.time, y = NH3.flux, color = group)) +
 ################################################################################################################################
 
 #Cumulative flux plotting#
+
 
 #Create a duplicate of the original dataframe to manipulate without affecting the original data
 dat_duplicate <- copy(dat)

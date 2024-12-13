@@ -15,13 +15,15 @@ library(zoo)
 library(ggplot2)
 library(plotly)
 library(patchwork)
+library(plyr)
+library(tidyr)
 
 ################################################################################################################################
 #Prerequ#Prerequ#Prerequisites to run readCRDS function#
 devtools::source_url('https://raw.githubusercontent.com/AU-BCE-EE/guidance/main/Picarro/PicarroFunction.R')
 
 #Reading in Picarro data#
-da <- readCRDS(('DFC_Picarro'), From = '18.09.2024 12:30:00', To = '24.09.2024 08:00:00', mult = F, tz = "ETC/GMT-1", rm = F)
+da <- readCRDS(('DFC_Picarro'), From = '18.09.2024 13:04:00', To = '24.09.2024 08:00:00', mult = F, tz = "ETC/GMT-1", rm = F)
 
 ################################################################################################################################
 # Making date.time stamp#
@@ -32,106 +34,157 @@ da$DATE <- as.Date(da$st)
 da$TIME <- format(da$st, format = "%H:%M:%S") 
 ################################################################################################################################
 
+
+################################################################################################################################
+####Checking############################################################################################################################
+da$elapsed.time <- difftime(da$date.time, min(da$date.time), units = 'hours')
+da <- da[da$MPVPosition %in% 1:19, ]
+da$MPVPosition <- as.character(da$MPVPosition)
+ggplot(da, aes(elapsed.time, NH3_30s, color = MPVPosition)) + geom_point() + xlim (0,3)
+################################################################################################################################
+################################################################################################################################
+
+
 #Removing unnecessary data#
 str(da); da
 names(da)
 da <- da[, -c(1:15, 17:19, 21:27)]
 str(da); da
 
+#Renaming the column MPVPosition to id#
+names(da)[names(da) == "MPVPosition"]  <- "id"
 
-#Renaming the column MPVPosition to valve#
-names(da)[names(da) == "MPVPosition"]  <- "valve"
+#Cropping data and taking the last point of each measurement from each id#
+da <- filter(da, !(da$id == lead(da$id)))
 
+#Removal of id changing values from 1-19#
 
-#Cropping data and taking the last point of each measurement from each valve#
-da <- filter(da, !(da$valve == lead(da$valve)))
+# Selecting points with whole numbers (when the id change there is a measurement where the id position
+# is in between two ids, these are removed)
+da <- da[da$id == '1' | da$id == '2' | da$id == '3' | da$id == '4' | da$id == '5' | da$id == '6' | da$id == '7' | 
+             da$id == '8' | da$id == '9' | da$id == '10' | da$id == '11' | da$id == '12' | da$id == '13' | da$id == '14' |
+             da$id == '15' | da$id == '16' | da$id == '17' | da$id == '18' | da$id == '19', ]
 
-
-#Removal of valve changing values from 1-19#
-da <- da[da$valve %in% 1:19, ]
-
-
-#Ordering data according to valves#
-split_valda <- split(da, f = da$valve)
-valid <- paste0("V", unique(da$valve))
+#Ordering data according to id#
+split_id <- split(da, f = da$id)
+id <- paste0("V", unique(da$id))
 new_da <- NULL
+
+################################################################################################################################
+####Checking############################################################################################################################
+da$elapsed.time <- difftime(da$date.time, min(da$date.time), units = 'hours')
+da <- da[da$id %in% 1:19, ]
+da$id <- as.character(da$id)
+ggplot(da, aes(elapsed.time, NH3_30s, color = id)) + geom_point() + xlim (0,3)
+################################################################################################################################
 ################################################################################################################################
 
+
 #Calculate elapsed time of splited subset#
-for (i in seq_along(split_valda)) {
-  subset_data <- split_valda[[i]]
+for (i in seq_along(split_id)) {
+  subset_data <- split_id[[i]]
   subset_data$elapsed.time <- difftime(subset_data$date.time, min(subset_data$date.time), units = 'hours')
   new_da <- rbind(new_da, subset_data)
 }
 dat<- new_da
-
-# keeping an elapsed.time with more decimals for cum.emis calc
-dat$elapsed.time.dec <- dat$elapsed.time
 
 #Rounding elapsed time to days#
 dat$elapsed.time <- round(as.numeric(dat$elapsed.time))
 dat$days <- dat$elapsed.time / 24
 ################################################################################################################################
 
-#Assign names to valve values#
-
-val_data <- dat %>%
-  mutate(treatment = recode(valve,
-                            `1` = '0-bls',
+#Assign names to id values#
+id_data <- dat %>%
+  mutate(treatment = recode(id,
+                            `1` = 'Mp',
                             `2` = '0-bp',
                             `3` = '1.5',
                             `4` = '2.9',
                             `5` = 'bkg',
                             `6` = '0-bp',
                             `7` = '5.7',
-                            `8` = '0-bls',
+                            `8` = 'Mp',
                             `9` = 'bkg',
                             `10` = '1.5',
                             `11` = '2.9',
-                            `12` = '0-bls',
+                            `12` = 'Mp',
                             `13` = '5.7',
                             `14` = '0-bp',
                             `15` = '1.5',
                             `16` = 'bkg',
                             `17` = '2.9',
-                            `18` = '0-bls',
+                            `18` = 'Mp',
                             `19` = '5.7'
   ),
   group = case_when(
-    valve %in% c(2, 6, 14) ~ 'No acid',
-    valve %in% c(3, 10, 15) ~ 'Low acid',
-    valve %in% c(4, 11, 17) ~ 'Medium acid',
-    valve %in% c(7, 13, 19) ~ 'High acid',
-    valve %in% c(5, 9, 16) ~ 'Background',
-    valve %in% c(1, 8, 12, 18) ~ 'Open plot'
+    id %in% c(2, 6, 14) ~ 'No acid',
+    id %in% c(3, 10, 15) ~ 'Low acid',
+    id %in% c(4, 11, 17) ~ 'Medium acid',
+    id %in% c(7, 13, 19) ~ 'High acid',
+    id %in% c(5, 9, 16) ~ 'Background',
+    id %in% c(1, 8, 12, 18) ~ 'Open plot'
   )
   )
-dat <- rbind(val_data)
+dat <- rbind(id_data)
 ################################################################################################################################
+
+################################################################################################################################
+####Checking############################################################################################################################
+ggplot(dat, aes(elapsed.time, NH3_30s, color = group)) + geom_point()
+###############################################################################################################################################################################################################################################################
 
 #Background corrected concentration# 
 #Background data#
-DFC.bg <- dat[val_data$group == 'Background', ]
+
+DFC.bg <- dat[id_data$group == 'Background', ]
+
+################################################################################################################################
+####Checking############################################################################################################################
+ggplot(DFC.bg, aes(elapsed.time, NH3_30s, color = group)) + geom_point()
+################################################################################################################################
+################################################################################################################################
 
 
 #DFC outlet data#
-DFC <- dat[val_data$group%in% c('No acid', 'Low acid', 'Medium acid', 'High acid', 'Open plot'), ]
+DFC <- dat[id_data$group%in% c('No acid', 'Low acid', 'Medium acid', 'High acid', 'Open plot'), ]
+names(DFC)[2] <- "NH3.DFC"
+
+################################################################################################################################
+####Checking############################################################################################################################
+ggplot(DFC, aes(elapsed.time, NH3.DFC, color = group)) + geom_point()
+################################################################################################################################
+################################################################################################################################
+
 
 #Mean background values#
-DFC.bg.mean <- aggregate(NH3_30s ~ elapsed.time, data = DFC.bg, FUN = mean)
+DFC.bg.summ <- aggregate(DFC.bg$NH3_30s, by = list(elapsed.time = DFC.bg$elapsed.time), FUN = mean)
+names(DFC.bg.summ)[2] <- "NH3.bg"
 
 
 #Joining average background and outlet data#
-DFC <- full_join(DFC.bg.mean, DFC, by = 'elapsed.time')
+DFC <- full_join(DFC.bg.summ, DFC, by = 'elapsed.time')
 DFC <- na.omit(DFC)
 
 #Subtracting background from outlet#
-DFC$NH3_corr <- DFC$NH3_30s.y - DFC$NH3_30s.x
+DFC$NH3_corr <- DFC$NH3.DFC - DFC$NH3.bg
 DFC[! complete.cases(DFC), ]
+
+################################################################################################################################
+####Checking#####################################################################################################################
+ggplot(DFC, aes(elapsed.time, NH3_corr, colour = group)) + geom_point()
+################################################################################################################################
+################################################################################################################################
+
 
 #Rebind again in DFC datasheet#
 dat <- rbind(DFC)
+
 ################################################################################################################################
+####Checking#####################################################################################################################
+ggplot(dat, aes(treatment, NH3_corr, colour = treatment)) + geom_point()
+################################################################################################################################
+################################################################################################################################
+
 
 #Import Weather Data and filter data#
 header <- c('date', 'time', 'temp')
@@ -172,17 +225,15 @@ dat$air.temp.K <- dat$temp + 273.15
 
 #NH3 flux prerequisite components#
 #Air flow Calculation#
-dat$air.flow <- 1
 dat$air.flow <- 2.28 * 1000 # L min^-1 
 
 #Chamber Area Calculation#
-dat$dfc.area <- 1
-dat$dfc.area <- (0.7/2)**2 * 3.14 #m^2
+dat$dfc.area <- (0.7/2)**2 * 3.14 #m^
 
 
 #Constants for flux calculation#
 #Atmospheric constant#
-atm.con <- 1 
+atm.con <- 1 #atm
 
 #Gas constant [L * atm * K^-1 * mol^-1]#
 g.con <- 0.082057338 
@@ -195,23 +246,27 @@ M.N <- 14.0067
 #convert NH3.corr from ppb to mol (mol * L^-1)#
 dat$n <- atm.con / (g.con * dat$air.temp.K) * dat$NH3_corr * 10^-9  # mol * L^-1   
 
+################################################################################################################################
+####Checking#####################################################################################################################
+ggplot(dat, aes(treatment, NH3_corr, colour = group)) + geom_point() ##ppb
+ggplot(dat, aes(treatment, n, colour = group)) + geom_point() ## mol * L^-1
+################################################################################################################################
+################################################################################################################################
+
+
 #Calculation of flux, from mol * L^-1 to g.NH3 * min^-1 * m^-2#
 dat$NH3.flux <- (dat$n * M.N * dat$air.flow) / dat$dfc.area
 dat$NH3.flux <- as.numeric(dat$NH3.flux)
-dat$NH3.flux <- as.numeric(dat$NH3.flux)
 dat$NH3.flux <- dat$NH3.flux * 1e6
+ggplot(dat, aes(treatment, NH3.flux, colour = group)) + geom_point()
+
 
 ###############################################################################################################################
 #NH3 flux plotting#
-
-# Plot NH3 Flux Over Time by Treatment#
-# Custom order for treatments
-dat$group <- factor(dat$group, levels = c("Open plot", "No acid", "Low acid", "Medium acid", "High acid"))
-
 # Plot NH3 Flux Over Time by Treatment
 g <- ggplot(dat, aes(x = elapsed.time, y = NH3.flux, color = group)) +
   geom_point(size = 1.5, alpha = 0.8) + 
-  geom_line(aes(group=valve)) + # Assuming 'valve' defines the individual line groupings
+  geom_line(aes(group=id)) + 
   scale_color_viridis_d() +
   scale_x_continuous(breaks = seq(0, 290, by = 30)) +
   scale_y_continuous(
@@ -247,44 +302,91 @@ g <- ggplot(dat, aes(x = elapsed.time, y = NH3.flux, color = group)) +
 #Create a duplicate of the original dataframe to manipulate without affecting the original data
 dat_duplicate <- copy(dat)
 
-#Remove rows with elapsed.time equal to 139
-dat_duplicate <- dat_duplicate %>% filter(elapsed.time != 139)
+dat_duplicate <- dat_duplicate %>% filter(elapsed.time != 139 & elapsed.time != 137)
 
 # Using mintegrate to calculate cumulative emissions (flux.treat) grouped by valve
 source("functions/mintegrate.R")
-dat_duplicate$flux.treat <- mintegrate(dat_duplicate$elapsed.time, dat_duplicate$NH3.flux, by = dat_duplicate$valve, method = 'trap')
+dat_duplicate$flux.treat <- mintegrate(dat_duplicate$elapsed.time, dat_duplicate$NH3.flux, by = dat_duplicate$id, method = 'trap')
+
+################################################################################################################################
+####Checking#####################################################################################################################
+ggplot(dat_duplicate, aes(treatment, flux.treat, color = group)) + geom_point()
+################################################################################################################################
 
 #Calculate cumulative emissions by treatment
 dat_duplicate <- dat_duplicate %>%
   mutate(cum.emis = flux.treat) %>% 
   group_by(treatment)
 
-#Filter the data to get the last time point for each valve-treatment group
+################################################################################################################################
+####Checking#####################################################################################################################
+ggplot(dat_duplicate, aes(treatment, cum.emis, color = group)) + geom_point()
+################################################################################################################################
+
+# Filter to get the last time point for each valve-treatment group
 dat_last <- dat_duplicate %>%
-  group_by(valve, treatment) %>%
-  filter(row_number() == n()) %>%  # Select the last observation per treatment group
+  group_by(id, treatment) %>%
+  filter(row_number() == n()) %>%  # Select the last observation per group
   ungroup()
 
-#Create a summary dataset for plotting (one point per treatment group)
-isummMac_last <- dat_last %>%
-  select(valve, treatment, cum.emis) %>%
-  distinct()  
+################################################################################################################################
+####Checking#####################################################################################################################
+ggplot(dat_last, aes(treatment, cum.emis, color = group)) + geom_point()
+################################################################################################################################
+
+# Create a summary dataset with cumulative emissions at the chamber level (isummMac)
+ind.summ <- dat_last %>%
+  select(id, treatment, cum.emis, elapsed.time) %>%
+  distinct()
 
 #Summarize cumulative emissions by treatment (average across last time points for each treatment)
-esummMac_last <- isummMac_last %>%
+cumsum.treat <- ind.summ %>%
   group_by(treatment) %>%
   summarise(cum.emis = mean(cum.emis, na.rm = TRUE), .groups = 'drop')
 
-#Plot the cumulative emissions for each treatment, including a boxplot for average values
+# Average Cum/treatment
+#mpcum <- ind.summ %>%
+#  filter(id %in% c(1, 8, 12, 18)) %>%              
+#  group_by(id) %>%                                   
+#  summarise(mpcum = mean(cum.emis, na.rm = T)) %>%  
+#mutate(category = "Mp")
+#nacum <- ind.summ %>%
+#  filter(id %in% c(2, 6, 14)) %>%              
+#  group_by(id) %>%                                    
+#  summarise(nacum = mean(cum.emis, na.rm = T)) %>%  
+#  mutate(category = "0-bp")
+#lacum <- ind.summ %>%
+#  filter(id %in% c(3, 10, 15)) %>%              
+#  group_by(id) %>%                                   
+#  summarise(lacum = mean(cum.emis, na.rm = T) %>%  
+#  mutate(category = "1.5")
+#macum <- ind.summ %>%
+#  filter(id %in% c(4, 11, 17)) %>%               
+#  group_by(id) %>%                                    
+#  summarise(macum = mean(cum.emis, na.rm = T) %>%  
+#  mutate(category = "2.9")
+#hacum <- ind.summ %>%
+#  filter(id %in% c(7, 13, 19)) %>%              
+#  group_by(id) %>%                                  
+#  summarise(hacum = mean(cum.emis, na.rm = TRUE)) %>% 
+#  mutate(category = "5.7")
+
+#combined_df <- bind_rows(dfs) %>%
+#  na.omit()
+
+
+
+
+# Plot cumulative emissions for each treatment with points and boxplot for averages
 cumsum_plot <- ggplot(isummMac_last, aes(x = treatment, y = cum.emis, color = treatment)) +  
   geom_point(size = 2, alpha = 0.7) +  
-  geom_boxplot(data = esummMac_last, aes(x = treatment, y = cum.emis, color = treatment), 
-               show.legend = F) +  
+  geom_boxplot(data = esummMac_last, aes(x = treatment, y = flux.treat, color = treatment), 
+               show.legend = FALSE) +  
   theme_bw() +
   labs(
     title = NULL,  
     x = "Treatment",  
-    y = expression(paste(NH[3], " Cumulative emissions (µg NH"[3]-N, " * min"^-1, " * m"^-2, ")"))  
+    y = expression(paste("massN / area"))  
   ) + 
   scale_x_discrete(labels = c(
     '0-bls' = 'Open plot',
@@ -321,7 +423,7 @@ dat_last <- dat_duplicate %>%
 # Calculate TAN fractional loss using global total TAN value
 dat_tan <- dat_last %>%
   mutate(
-    TAN_loss_fraction = cum.emis / total_tan  # Fractional loss of TAN (no *100 for percentage)
+    TAN_loss_fraction = cum.emis / total_tan * 100 # Fractional loss of TAN (no *100 for percentage)
   )
 
 # Prepare summary data for visualization
@@ -333,7 +435,7 @@ isummMac_last <- dat_tan %>%
 # Average TAN loss fraction for plotting
 esummMac_last <- isummMac_last %>%
   group_by(treatment) %>%
-  summarise(TAN_loss_fraction = mean(TAN_loss_fraction, na.rm = TRUE), .groups = 'drop')
+  summarise(TAN_loss_fraction = mean(TAN_loss_fraction, na.rm = TRUE)
 
 # Plot the TAN loss fraction for each treatment, including a boxplot for average values
 tan_loss_plot <- ggplot(isummMac_last, aes(x = treatment, y = TAN_loss_fraction, color = treatment)) +  
@@ -367,177 +469,6 @@ tan_loss_plot <- ggplot(isummMac_last, aes(x = treatment, y = TAN_loss_fraction,
 print(tan_loss_plot)
 
 ## The end of Flavia experiment 1 ####
-
-
-#####################################################################################################################
-#####################################################################################################################
-#####################################################################################################################
-## N-Grass ####
-
-#NH3 flux plotting#
-
-# Filter the data 
-machine_applied_data <- filter(dat, treatment %in% c('0-bls'))  
-handheld_applied_data <- filter(dat, treatment %in% c('0-bp', '1.5', '2.9', '5.7'))  
-
-# Combine them for the plot
-flux_data <- bind_rows(machine_applied_data, handheld_applied_data)
-
-# Define colors for the two groups: Machine-applied and Handheld-applied slurry
-flux_data <- flux_data %>%
-  mutate(treatment_group = ifelse(treatment == '0-bls', 'Machine-applied slurry', 'Handheld-applied slurry'))
-
-# Create the flux plot with colored treatments (Machine vs Handheld)
-flux_plot <- ggplot(flux_data, aes(x = elapsed.time, y = NH3.flux, color = treatment_group)) +
-  geom_point(size = 1.5, alpha = 0.8) + 
-  geom_line(aes(group = valve)) + # Assuming 'valve' defines the individual line groupings
-  
-  # Set custom colors for the two groups
-  scale_color_manual(values = c('Machine-applied slurry' = '#a8d08d',  # Green
-                                'Handheld-applied slurry' = '#ff7f0e')) +  # Orange
-  
-  labs(
-    y = expression(paste(NH[3], " Flux (µg NH"[3]-N, " * min"^-1, " * m"^-2, ")")),
-    x = "Elapsed Time (hours)",
-    color = "Slurry Application"
-  ) +
-  theme_bw() +
-  theme(
-    axis.title = element_text(size = 14),       
-    axis.text = element_text(size = 12),      
-    plot.title = element_text(size = 16, hjust = 0.5),
-    legend.text = element_text(size = 12),      
-    legend.title = element_blank(),             
-    legend.position = "bottom"        
-  ); flux_plot
-
-
-output_folder <- '/Users/AU775281/Documents/PhD/Meetings/N Grass meeting' 
-output_file <- file.path(output_folder, "flux_plot.png")  
-
-# Save the plot to the designated folder
-ggsave(output_file, plot = flux_plot, width = 10, height = 6, dpi = 300)
-#####################################################################################################################
-#####################################################################################################################
-
-#Cumulative flux plotting#
-
-# Calculate cumulative emissions using mintegrate
-source("functions/mintegrate.R")
-dat$flux.treat <- mintegrate(dat$elapsed.time, dat$NH3.flux, by = dat$valve, method = 'trap')
-
-# Create a duplicate of the original dataframe to manipulate without affecting the original data
-dat_duplicate <- copy(dat)
-
-# Remove rows with elapsed.time equal to 139
-dat_duplicate <- dat_duplicate %>% filter(elapsed.time != 139)
-
-# Calculate cumulative emissions by treatment
-dat_duplicate <- dat_duplicate %>%
-  mutate(cum.emis = flux.treat) %>% 
-  group_by(treatment)
-
-# Filter the data to get the last time point for each valve-treatment group
-dat_last <- dat_duplicate %>%
-  group_by(valve, treatment) %>%
-  filter(row_number() == n()) %>%  # Select the last observation per treatment group
-  ungroup()
-
-# Add the group column to isummMac_last to indicate machine vs handheld
-isummMac_last <- isummMac_last %>%
-  mutate(group = ifelse(treatment == "0-bls", "Machine-applied slurry", "Handheld-applied slurry"))
-
-# Plot the cumulative emissions for each treatment, including a boxplot for average values
-cumsum_plot <- ggplot(isummMac_last, aes(x = treatment, y = cum.emis, color = group)) +  
-  geom_point(size = 2, alpha = 0.7) +  
-  geom_boxplot(data = esummMac_last, aes(x = treatment, y = cum.emis, fill = group), 
-               show.legend = F) +  # Use 'fill' for boxplot's internal color
-  theme_bw() +
-  labs(
-    title = NULL,  
-    x = "Treatment",  
-    y = expression(paste(NH[3], " Cumulative emissions (µg NH"[3]-N, " * min"^-1, " * m"^-2, ")"))  
-  ) + 
-  scale_x_discrete(labels = c(
-    '0-bls' = 'M',  
-    '0-bp' = 'H',  
-    '1.5' = 'H',
-    '2.9' = 'H',
-    '5.7' = 'H'
-  )) +  
-  scale_color_manual(values = c("Machine-applied slurry" = "dodgerblue4", "Handheld-applied slurry" = "forestgreen")) +  # Custom colors
-  scale_fill_manual(values = c("Machine-applied slurry" = "dodgerblue4", "Handheld-applied slurry" = "forestgreen")) +  # Custom fill colors
-  theme(
-    axis.title = element_text(size = 14),
-    axis.text = element_text(size = 12),
-    strip.text = element_blank(),             
-    legend.title = element_blank(),                     
-    legend.position = "right",                          
-    axis.text.x = element_text(angle = 0, hjust = 0.5)
-  ); print(cumsum_plot)
-
-output_folder <- '/Users/AU775281/Documents/PhD/Meetings/N Grass meeting' 
-output_file <- file.path(output_folder, "cumsum_plot.png")  
-
-# Save the plot to the designated folder
-ggsave(output_file, plot = cumsum_plot, width = 10, height = 6, dpi = 300)
-
-#####################################################################################################################
-#####################################################################################################################
-
-#NH3 flux with Sd plotting#
-
-# Calculate mean and standard deviation by treatment group and elapsed time
-flux_stats <- flux_data %>%
-  group_by(treatment_group, elapsed.time) %>%
-  summarise(
-    mean_flux = mean(NH3.flux, na.rm = TRUE),
-    sd_flux = sd(NH3.flux, na.rm = TRUE)
-  )
-
-# Plot with error bars (standard deviation) and different colors for error bars
-flux_plot_with_errorbars <- ggplot(flux_stats, aes(x = elapsed.time, y = mean_flux, color = treatment_group)) +
-  geom_point(size = 1.5, alpha = 0.8) + 
-  geom_line(aes(group = treatment_group)) +  # Assuming 'treatment_group' defines the individual line groupings
-  
-  # Adding error bars with colors based on treatment group
-  geom_errorbar(aes(ymin = mean_flux - sd_flux, ymax = mean_flux + sd_flux, color = treatment_group),
-                width = 0.2, size = 1) + # Error bars
-  
-  scale_color_manual(values = c('Machine-applied slurry' = '#a8d08d',  # Green
-                                'Handheld-applied slurry' = '#ff7f0e')) +  # Orange
-  
-  labs(
-    y = expression(paste(NH[3], " Flux (µg NH"[3]-N, " * min"^-1, " * m"^-2, ")")),
-    x = "Elapsed Time (hours)",
-    color = "Slurry Application"
-  ) +
-  theme_bw() +
-  theme(
-    axis.title = element_text(size = 14),       
-    axis.text = element_text(size = 12),      
-    plot.title = element_text(size = 16, hjust = 0.5),
-    legend.text = element_text(size = 12),      
-    legend.title = element_blank(),             
-    legend.position = "bottom"        
-  ); (flux_plot_with_errorbars)
-
-
-output_folder <- '/Users/AU775281/Documents/PhD/Meetings/N Grass meeting' 
-output_file <- file.path(output_folder, "flux_plot_with_errorbars.png")  
-
-# Save the plot to the designated folder
-ggsave(output_file, plot = flux_plot_with_errorbars, width = 10, height = 6, dpi = 300)
-
-## The N Grass experiment 1 ####
-
-
-
-
-
-
-
-
 
 
 
