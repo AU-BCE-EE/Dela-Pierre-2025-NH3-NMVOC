@@ -332,10 +332,30 @@ indsum <- dat_last %>%
   select(valve, treatment, cum.emis) %>%
   distinct()
 
+str(indsum)
+indsum %>% group_by(treatment) %>% count() # something is wrong with the 'treatment' column... 
+
+indsum$treatment <- as.character(paste(indsum$treatment)) # still not working
+indsum %>% group_by(treatment) %>% count()
+
+indsum$treatment <- as.factor(indsum)
+indsum %>% group_by(treatment) %>% count() # what is going on
+
+indsum$treatment <- trimws(indsum$treatment)
+indsum %>% group_by(treatment) %>% count() # still not working.... 
+
+indsum$treatment <- gsub("[[:space:]]", "", indsum$treatment)
+indsum %>% group_by(treatment) %>% count() # what is going on
+
+unique(indsum$treatment) # Now I'm more confused
+
 #Summarize cumulative emissions by treatment (average across last time points for each treatment)
 cumsum <- indsum %>% 
   group_by(treatment) %>% 
-  summarise(cum.emis = mean(cum.emis, na.rm = TRUE), .groups = 'drop')
+  summarize(cum.emis.avg = mean(cum.emis))
+
+cumsum <- aggregate(indsum$cum.emis, by = list(treatment = indsum$treatment), FUN = mean)
+
 
 # Plot cumugroup# Plot cumulative emissions for each treatment with points and boxplot for averages
 cumsum_plot <- ggplot(indsum, aes(x = treatment, y = cum.emis, color = treatment)) +  
