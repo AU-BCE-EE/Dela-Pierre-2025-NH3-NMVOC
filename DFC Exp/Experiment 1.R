@@ -23,7 +23,7 @@ library(tidyr)
 devtools::source_url('https://raw.githubusercontent.com/AU-BCE-EE/guidance/main/Picarro/PicarroFunction.R')
 
 #Reading in Picarro data#
-da <- readCRDS(('DFC_Picarro'), From = '18.09.2024 13:04:00', To = '24.09.2024 08:00:00', mult = F, tz = "ETC/GMT-1", rm = F)
+da <- readCRDS(('DFC_Picarro'), From = '18.09.2024 12:00:40', To = '24.09.2024 08:00:00', mult = F, tz = "ETC/GMT-1", rm = F)
 
 ################################################################################################################################
 # Making date.time stamp#
@@ -51,38 +51,37 @@ names(da)
 da <- da[, -c(1:15, 17:19, 21:27)]
 str(da); da
 
-#Renaming the column MPVPosition to id#
-names(da)[names(da) == "MPVPosition"]  <- "id"
+#Renaming the column MPVPosition to valve#
+names(da)[names(da) == "MPVPosition"]  <- "valve"
 
-#Cropping data and taking the last point of each measurement from each id#
-da <- filter(da, !(da$id == lead(da$id)))
+#Cropping data and taking the last point of each measurement from each vavle#
+da <- filter(da, !(da$valve == lead(da$valve)))
 
-#Removal of id changing values from 1-19#
+#Removalve of valve changing valveues from 1-19#
 
-# Selecting points with whole numbers (when the id change there is a measurement where the id position
-# is in between two ids, these are removed)
-da <- da[da$id == '1' | da$id == '2' | da$id == '3' | da$id == '4' | da$id == '5' | da$id == '6' | da$id == '7' | 
-             da$id == '8' | da$id == '9' | da$id == '10' | da$id == '11' | da$id == '12' | da$id == '13' | da$id == '14' |
-             da$id == '15' | da$id == '16' | da$id == '17' | da$id == '18' | da$id == '19', ]
+# Selecting points with whole numbers (when the valve change there is a measurement where the valve position
+# is in between two valves, these are removed)
+da <- da[da$valve == '1' | da$valve == '2' | da$valve == '3' | da$valve == '4' | da$valve == '5' | da$valve == '6' | da$valve == '7' | 
+             da$valve == '8' | da$valve == '9' | da$valve == '10' | da$valve == '11' | da$valve == '12' | da$valve == '13' | da$valve == '14' |
+             da$valve == '15' | da$valve == '16' | da$valve == '17' | da$valve == '18' | da$valve == '19', ]
 
-#Ordering data according to id#
-split_id <- split(da, f = da$id)
-id <- paste0("V", unique(da$id))
+#Ordering data according to valve#
+split_valve <- split(da, f = da$valve)
+valve <- paste0("V", unique(da$valve))
 new_da <- NULL
 
 ################################################################################################################################
 ####Checking############################################################################################################################
 da$elapsed.time <- difftime(da$date.time, min(da$date.time), units = 'hours')
-da <- da[da$id %in% 1:19, ]
-da$id <- as.character(da$id)
-ggplot(da, aes(elapsed.time, NH3_30s, color = id)) + geom_point() + xlim (0,3)
+da$valve <- as.character(da$valve)
+ggplot(da, aes(elapsed.time, NH3_30s, color = valve)) + geom_point() + xlim (0,3)
 ################################################################################################################################
 ################################################################################################################################
 
 
 #Calculate elapsed time of splited subset#
-for (i in seq_along(split_id)) {
-  subset_data <- split_id[[i]]
+for (i in seq_along(split_valve)) {
+  subset_data <- split_valve[[i]]
   subset_data$elapsed.time <- difftime(subset_data$date.time, min(subset_data$date.time), units = 'hours')
   new_da <- rbind(new_da, subset_data)
 }
@@ -93,9 +92,9 @@ dat$elapsed.time <- round(as.numeric(dat$elapsed.time))
 dat$days <- dat$elapsed.time / 24
 ################################################################################################################################
 
-#Assign names to id values#
-id_data <- dat %>%
-  mutate(treatment = recode(id,
+#Assign names to valve valveues#
+valve_data <- dat %>%
+  mutate(treatment = recode(valve,
                             `1` = 'Mp',
                             `2` = '0-bp',
                             `3` = '1.5',
@@ -117,15 +116,15 @@ id_data <- dat %>%
                             `19` = '5.7'
   ),
   group = case_when(
-    id %in% c(2, 6, 14) ~ 'No acid',
-    id %in% c(3, 10, 15) ~ 'Low acid',
-    id %in% c(4, 11, 17) ~ 'Medium acid',
-    id %in% c(7, 13, 19) ~ 'High acid',
-    id %in% c(5, 9, 16) ~ 'Background',
-    id %in% c(1, 8, 12, 18) ~ 'Open plot'
+    valve %in% c(2, 6, 14) ~ 'No acid',
+    valve %in% c(3, 10, 15) ~ 'Low acid',
+    valve %in% c(4, 11, 17) ~ 'Medium acid',
+    valve %in% c(7, 13, 19) ~ 'High acid',
+    valve %in% c(5, 9, 16) ~ 'Background',
+    valve %in% c(1, 8, 12, 18) ~ 'Open plot'
   )
   )
-dat <- rbind(id_data)
+dat <- rbind(valve_data)
 ################################################################################################################################
 
 ################################################################################################################################
@@ -136,7 +135,7 @@ ggplot(dat, aes(elapsed.time, NH3_30s, color = group)) + geom_point()
 #Background corrected concentration# 
 #Background data#
 
-DFC.bg <- dat[id_data$group == 'Background', ]
+DFC.bg <- dat[valve_data$group == 'Background', ]
 
 ################################################################################################################################
 ####Checking############################################################################################################################
@@ -146,7 +145,7 @@ ggplot(DFC.bg, aes(elapsed.time, NH3_30s, color = group)) + geom_point()
 
 
 #DFC outlet data#
-DFC <- dat[id_data$group%in% c('No acid', 'Low acid', 'Medium acid', 'High acid', 'Open plot'), ]
+DFC <- dat[valve_data$group%in% c('No acid', 'Low acid', 'Medium acid', 'High acid', 'Open plot'), ]
 names(DFC)[2] <- "NH3.DFC"
 
 ################################################################################################################################
@@ -156,7 +155,7 @@ ggplot(DFC, aes(elapsed.time, NH3.DFC, color = group)) + geom_point()
 ################################################################################################################################
 
 
-#Mean background values#
+#Mean background valveues#
 DFC.bg.summ <- aggregate(DFC.bg$NH3_30s, by = list(elapsed.time = DFC.bg$elapsed.time), FUN = mean)
 names(DFC.bg.summ)[2] <- "NH3.bg"
 
@@ -176,8 +175,10 @@ ggplot(DFC, aes(elapsed.time, NH3_corr, colour = group)) + geom_point()
 ################################################################################################################################
 
 
-#Rebind again in DFC datasheet#
+#Rebind again in dat datasheet#
 dat <- rbind(DFC)
+dat <- dat[order(dat$treatment), ]
+
 
 ################################################################################################################################
 ####Checking#####################################################################################################################
@@ -254,29 +255,30 @@ ggplot(dat, aes(treatment, n, colour = group)) + geom_point() ## mol * L^-1
 ################################################################################################################################
 
 
-#Calculation of flux, from mol * L^-1 to g.NH3 * min^-1 * m^-2#
-dat$NH3.flux <- (dat$n * M.N * dat$air.flow) / dat$dfc.area
-dat$NH3.flux <- as.numeric(dat$NH3.flux)
-dat$NH3.flux <- dat$NH3.flux * 1e6
+#Calculation of flux, from mol * L^-1 to mg.NH3 * min^-1 * m^-2#
+dat$NH3.flux <- ((dat$n * M.N * dat$air.flow) / dat$dfc.area) * 1000
+
 ggplot(dat, aes(treatment, NH3.flux, colour = group)) + geom_point()
 
 
 ###############################################################################################################################
 #NH3 flux plotting#
 # Plot NH3 Flux Over Time by Treatment
+
+
 g <- ggplot(dat, aes(x = elapsed.time, y = NH3.flux, color = group)) +
   geom_point(size = 1.5, alpha = 0.8) + 
-  geom_line(aes(group=id)) + 
+  geom_line(aes(group=valve)) + 
   scale_color_viridis_d() +
   scale_x_continuous(breaks = seq(0, 290, by = 30)) +
   scale_y_continuous(
-    breaks = seq(0, 3000, by = 600),  # Adjust breaks to your desired range
+    breaks = seq(0, 13, by = 2),  # Adjust breaks to your desired range
   ) +
   
   # Axis labels and title, with ammonia flux
   labs(
     title = expression(paste("NH"[3], " Flux Over Time")),
-    y = expression(paste(NH[3], " Flux (µg NH"[3]-N, " * min"^-1, " * m"^-2, ")")),
+    y = expression(paste(NH[3], " Flux (mg NH"[3]-N, " * m"^-2, " * min"^-1, ")")),
     x = "Elapsed Time (hours)",
     color = "Treatment"
   ) +
@@ -297,90 +299,44 @@ g <- ggplot(dat, aes(x = elapsed.time, y = NH3.flux, color = group)) +
   guides(color = guide_legend(nrow = 2)); g
 
 ################################################################################################################################
-#Cumulative flux plotting#
+#Cumulative plot#
 
-#Create a duplicate of the original dataframe to manipulate without affecting the original data
-dat_duplicate <- copy(dat)
+dat <- dat %>% filter(elapsed.time != 139, elapsed.time != 137)
 
-dat_duplicate <- dat_duplicate %>% filter(elapsed.time != 139 & elapsed.time != 137)
-
-# Using mintegrate to calculate cumulative emissions (flux.treat) grouped by valve
+# Calculate cumulative emissions using mintegrate function 
 source("functions/mintegrate.R")
-dat_duplicate$flux.treat <- mintegrate(dat_duplicate$elapsed.time, dat_duplicate$NH3.flux, by = dat_duplicate$id, method = 'trap')
+dat$cum.treat <- mintegrate(dat$elapsed.time, dat$NH3.flux, by = dat$valve, method = 'trap') #(NH3-N mg m^-2)
 
 ################################################################################################################################
 ####Checking#####################################################################################################################
-ggplot(dat_duplicate, aes(treatment, flux.treat, color = group)) + geom_point()
+ggplot(dat, aes(treatment, cum.treat, color = group)) + geom_point()
 ################################################################################################################################
 
-#Calculate cumulative emissions by treatment
-dat_duplicate <- dat_duplicate %>%
-  mutate(cum.emis = flux.treat) %>% 
+#Cumulative emissions by treatment
+dat <- dat %>%
+  mutate(cum.emis = cum.treat) %>% 
   group_by(treatment)
 
-################################################################################################################################
-####Checking#####################################################################################################################
-ggplot(dat_duplicate, aes(treatment, cum.emis, color = group)) + geom_point()
-################################################################################################################################
-
-# Filter to get the last time point for each valve-treatment group
-dat_last <- dat_duplicate %>%
-  group_by(id, treatment) %>%
-  filter(row_number() == n()) %>%  # Select the last observation per group
+ #Filter the data to get the last time point for each valve-treatment group
+dat_last <- dat %>%
+  group_by(valve, treatment) %>%
+  filter(row_number() == n()) %>%  # Select the last observation per treatment group
   ungroup()
 
-################################################################################################################################
-####Checking#####################################################################################################################
-ggplot(dat_last, aes(treatment, cum.emis, color = group)) + geom_point()
-################################################################################################################################
-
-# Create a summary dataset with cumulative emissions at the chamber level (isummMac)
-ind.summ <- dat_last %>%
-  select(id, treatment, cum.emis, elapsed.time) %>%
+#Create a summary dataset for plotting (one point per treatment group)
+indsum <- dat_last %>%
+  select(valve, treatment, cum.emis) %>%
   distinct()
 
 #Summarize cumulative emissions by treatment (average across last time points for each treatment)
-cumsum.treat <- ind.summ %>%
-  group_by(treatment) %>%
+cumsum <- indsum %>% 
+  group_by(treatment) %>% 
   summarise(cum.emis = mean(cum.emis, na.rm = TRUE), .groups = 'drop')
 
-# Average Cum/treatment
-#mpcum <- ind.summ %>%
-#  filter(id %in% c(1, 8, 12, 18)) %>%              
-#  group_by(id) %>%                                   
-#  summarise(mpcum = mean(cum.emis, na.rm = T)) %>%  
-#mutate(category = "Mp")
-#nacum <- ind.summ %>%
-#  filter(id %in% c(2, 6, 14)) %>%              
-#  group_by(id) %>%                                    
-#  summarise(nacum = mean(cum.emis, na.rm = T)) %>%  
-#  mutate(category = "0-bp")
-#lacum <- ind.summ %>%
-#  filter(id %in% c(3, 10, 15)) %>%              
-#  group_by(id) %>%                                   
-#  summarise(lacum = mean(cum.emis, na.rm = T) %>%  
-#  mutate(category = "1.5")
-#macum <- ind.summ %>%
-#  filter(id %in% c(4, 11, 17)) %>%               
-#  group_by(id) %>%                                    
-#  summarise(macum = mean(cum.emis, na.rm = T) %>%  
-#  mutate(category = "2.9")
-#hacum <- ind.summ %>%
-#  filter(id %in% c(7, 13, 19)) %>%              
-#  group_by(id) %>%                                  
-#  summarise(hacum = mean(cum.emis, na.rm = TRUE)) %>% 
-#  mutate(category = "5.7")
-
-#combined_df <- bind_rows(dfs) %>%
-#  na.omit()
-
-
-
-
-# Plot cumulative emissions for each treatment with points and boxplot for averages
-cumsum_plot <- ggplot(isummMac_last, aes(x = treatment, y = cum.emis, color = treatment)) +  
+# Plot cumugroup# Plot cumulative emissions for each treatment with points and boxplot for averages
+cumsum_plot <- ggplot(indsum, aes(x = treatment, y = cum.emis, color = treatment)) +  
   geom_point(size = 2, alpha = 0.7) +  
-  geom_boxplot(data = esummMac_last, aes(x = treatment, y = flux.treat, color = treatment), 
+  geom_boxplot(data = cumsum, aes(x = treatment, y = cum.emis, color = treatment), 
                show.legend = FALSE) +  
   theme_bw() +
   labs(
@@ -407,7 +363,7 @@ cumsum_plot <- ggplot(isummMac_last, aes(x = treatment, y = cum.emis, color = tr
 
 ################################################################################################################################
 
-# Define global TAN value (mg/L) and chamber volume (Liters)
+# Define global TAN valveue (mg/L) and chamber volume (Liters)
 Tan.volume <- 1.33  # Liters per chamber
 Tan.conc <- 2519    # TAN concentration in mg/L
 
@@ -420,7 +376,7 @@ dat_last <- dat_duplicate %>%
   filter(elapsed.time == max(elapsed.time)) %>%
   ungroup()
 
-# Calculate TAN fractional loss using global total TAN value
+# Calculate TAN fractional loss using global total TAN valveue
 dat_tan <- dat_last %>%
   mutate(
     TAN_loss_fraction = cum.emis / total_tan * 100 # Fractional loss of TAN (no *100 for percentage)
@@ -428,16 +384,16 @@ dat_tan <- dat_last %>%
 
 # Prepare summary data for visualization
 # Individual TAN fractional loss data
-isummMac_last <- dat_tan %>%
+isummMac_tan <- dat_tan %>%
   select(treatment, TAN_loss_fraction) %>%
   distinct()
 
 # Average TAN loss fraction for plotting
-esummMac_last <- isummMac_last %>%
+esummMac_tan <- isummMac_tan %>%
   group_by(treatment) %>%
   summarise(TAN_loss_fraction = mean(TAN_loss_fraction, na.rm = TRUE)
 
-# Plot the TAN loss fraction for each treatment, including a boxplot for average values
+# Plot the TAN loss fraction for each treatment, including a boxplot for average valveues
 tan_loss_plot <- ggplot(isummMac_last, aes(x = treatment, y = TAN_loss_fraction, color = treatment)) +  
   geom_point(size = 2, alpha = 0.7) +  
   geom_boxplot(data = esummMac_last, aes(x = treatment, y = TAN_loss_fraction, color = treatment), 
@@ -590,7 +546,7 @@ print(tan_loss_plot)
 #  filter(elapsed.time == max(elapsed.time)) %>%
 #  ungroup()
 
-#Create the 'tan_data' data frame (this will contain the total TAN values for each treatment)
+#Create the 'tan_data' data frame (this will contain the total TAN valveues for each treatment)
 #tan_data <- data.frame(
 #  treatment = c('0-bls', '0-bp', '1.5', '2.9', '5.7'),
 #  total_tan = c(2478.6055, 2519.7095, 2222.396, 1479.7655, 1131.413)
@@ -605,7 +561,7 @@ print(tan_loss_plot)
 #Join your cumulative emissions data with the 'tan_data' for each treatment
 #dat_last <- left_join(dat_last, tan_data, by = "treatment")
 
-#Calculate TAN loss over time (using cumulative NH3 emissions and total TAN values)
+#Calculate TAN loss over time (using cumulative NH3 emissions and total TAN valveues)
 #dat_last <- dat_last %>%
 #  mutate(
 #    TAN_loss_percent = ( cum.emis / total_tan) * 100  
