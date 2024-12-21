@@ -23,7 +23,7 @@ library(tidyr)
 devtools::source_url('https://raw.githubusercontent.com/AU-BCE-EE/guidance/main/Picarro/PicarroFunction.R')
 
 #Reading in Picarro data#
-da <- readCRDS(('DFC_Picarro'), From = '18.09.2024 12:00:40', To = '24.09.2024 08:00:00', mult = F, tz = "ETC/GMT-1", rm = F)
+da <- readCRDS(('DFC_Picarro'), From = '18.09.2024 06:00:40', To = '24.09.2024 08:00:00', mult = F, tz = "EST", rm = F)
 
 ################################################################################################################################
 # Making date.time stamp#
@@ -199,6 +199,10 @@ weather$date <- parse_date_time(weather$date, orders = c("d/m/y", "d-m-y"))
 #Selecting experiment date range#
 start_date <- dmy("18/09/2024")
 end_date <- dmy("24/09/2024")
+
+# Filter the data within the date range
+weather <- weather[weather$date >= start_date & weather$date <= end_date, ]
+
 ################################################################################################################################
 
 #Round both columns to the nearest hour#
@@ -210,8 +214,8 @@ dat$date.time <- round_date(dat$date.time, unit = "hour")
 
 #Convert both to POSIXct#
 weather$date.time.weather <- sprintf("%s %02d:00", weather$date, weather$time)
-weather$date.time.weather <- as.POSIXct(weather$date.time.weather, format = '%Y-%m-%d %H:%M', tz = "ETC/GMT-1")
-dat$date.time <- as.POSIXct(dat$date.time, format = '%Y-%m-%d %H:%M', tz = "ETC/GMT-1")
+weather$date.time.weather <- as.POSIXct(weather$date.time.weather, format = '%Y-%m-%d %H:%M', tz = "EST")
+dat$date.time <- as.POSIXct(dat$date.time, format = '%Y-%m-%d %H:%M', tz = "EST")
 head(weather$date.time.weather)
 
 #Merging data#
@@ -308,7 +312,7 @@ g <- ggplot(dat, aes(x = elapsed.time, y = NH3.flux, color = group)) +
 dat <- dat %>% filter(elapsed.time != 139, elapsed.time != 137)
 
 # Calculate cumulative emissions using mintegrate function 
-source("functions/mintegrate.R")
+source("Functions/mintegrate.R")
 dat$cum.treat <- mintegrate(dat$elapsed.time, dat$NH3.flux, by = dat$valve, method = 'trap') #(NH3-N mg m^-2)
 
 ################################################################################################################################
@@ -316,7 +320,7 @@ dat$cum.treat <- mintegrate(dat$elapsed.time, dat$NH3.flux, by = dat$valve, meth
 ggplot(dat, aes(treatment, cum.treat, color = group)) + geom_point()
 ################################################################################################################################
 
-#Cumulative emissions by treatment
+#Cumulative emissions by treatment from mintegrate function
 dat <- dat %>%
   mutate(cum.emis = cum.treat) %>% 
   group_by(treatment)
@@ -332,10 +336,19 @@ indsum <- dat_last %>%
   select(valve, treatment, cum.emis) %>%
   distinct()
 
+################################################################################################################################
+####Checking#####################################################################################################################
+ggplot(indsum, aes(treatment, cum.emis, color = treatment)) + geom_point()
+################################################################################################################################
+
 #Summarize cumulative emissions by treatment (average across last time points for each treatment)
-cumsum <- indsum %>% 
-  group_by(treatment) %>% 
-  summarise(cum.emis = mean(cum.emis, na.rm = TRUE), .groups = 'drop')
+cumsum <- aggregate(indsum$cum.emis, by = list(treatment = indsum$treatment), FUN = function(x) mean(x, na.rm = TRUE))
+names(cumsum)[2] <- "cum.emis"
+
+################################################################################################################################
+####Checking#####################################################################################################################
+ggplot(cumsum, aes(treatment, cum.emis, color = treatment)) + geom_point()
+################################################################################################################################
 
 # Plot cumugroup# Plot cumulative emissions for each treatment with points and boxplot for averages
 cumsum_plot <- ggplot(indsum, aes(x = treatment, y = cum.emis, color = treatment)) +  
@@ -346,7 +359,7 @@ cumsum_plot <- ggplot(indsum, aes(x = treatment, y = cum.emis, color = treatment
   labs(
     title = NULL,  
     x = "Treatment",  
-    y = expression(paste("massN / area"))  
+    y = expression(paste(NH[3], "-N (mg * m"^-2, ")"))
   ) + 
   scale_x_discrete(labels = c(
     '0-bls' = 'Open plot',
@@ -370,44 +383,41 @@ cumsum_plot <- ggplot(indsum, aes(x = treatment, y = cum.emis, color = treatment
 # Define global TAN valveue (mg/L) and chamber volume (Liters)
 Tan.volume <- 1.33  # Liters per chamber
 Tan.conc <- 2519    # TAN concentration in mg/L
+Tan.conc <- Tan.volume * Tan.conc  #mg/L/chamber
 
-# Convert TAN from mg/L to micrograms using the chamber volume (total TAN in µg)
-total_tan <- Tan.conc * Tan.volume * 1000  # Convert to micrograms (µg)
 
-# Filter for the last time point to calculate TAN Loss Fraction
-dat_last <- dat_duplicate %>%
-  group_by(treatment) %>%
-  filter(elapsed.time == max(elapsed.time)) %>%
-  ungroup()
-
-# Calculate TAN fractional loss using global total TAN valveue
-dat_tan <- dat_last %>%
+# Calculate total (mg/L)/chamber
+total_tan <- Tan.conc * Tan.volume 
+dat_last$total_tan <- total_tan
+   
+# Calculate TAN fractional loss using total TAN valve
+dat_last <- dat_last %>%
   mutate(
-    TAN_loss_fraction = cum.emis / total_tan * 100 # Fractional loss of TAN (no *100 for percentage)
+    tanloss = (cum.emis / total_tan) *100
   )
 
 # Prepare summary data for visualization
 # Individual TAN fractional loss data
-isummMac_tan <- dat_tan %>%
-  select(treatment, TAN_loss_fraction) %>%
+indsum.tan <- dat_last %>%
+  select(treatment, tanloss) %>%
   distinct()
 
 # Average TAN loss fraction for plotting
-esummMac_tan <- isummMac_tan %>%
-  group_by(treatment) %>%
-  summarise(TAN_loss_fraction = mean(TAN_loss_fraction, na.rm = TRUE)
+cumsum.tan <- aggregate(indsum.tan$tanloss, by = list(treatment = indsum$treatment), FUN = function(x) mean(x, na.rm = TRUE))
+names(cumsum.tan)[2] <- "tanloss"
 
 # Plot the TAN loss fraction for each treatment, including a boxplot for average valveues
-tan_loss_plot <- ggplot(isummMac_last, aes(x = treatment, y = TAN_loss_fraction, color = treatment)) +  
+tan.loss <- ggplot(indsum.tan, aes(x = treatment, y = tanloss, color = treatment)) +  
   geom_point(size = 2, alpha = 0.7) +  
-  geom_boxplot(data = esummMac_last, aes(x = treatment, y = TAN_loss_fraction, color = treatment), 
+  geom_boxplot(data = cumsum.tan, aes(x = treatment, y = tanloss, color = treatment), 
                show.legend = F) +  
   theme_bw() +
   labs(
     title = NULL,  
     x = "Treatment",  
-    y = "Fractional TAN Loss"  # Y-axis label for fractional TAN loss
+    y= expression("Loss of TAN (% of applied)")
   ) + 
+
   scale_x_discrete(labels = c(
     '0-bls' = 'Open plot',
     '0-bp' = 'No acid',
@@ -423,12 +433,33 @@ tan_loss_plot <- ggplot(isummMac_last, aes(x = treatment, y = TAN_loss_fraction,
     legend.title = element_blank(),                     
     legend.position = "right",                          
     axis.text.x = element_text(angle = 45, hjust = 1)
-  )
+  ); tan.loss
 
-# Display the plot
-print(tan_loss_plot)
+############################################################################################
 
 ## The end of Flavia experiment 1 ####
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
