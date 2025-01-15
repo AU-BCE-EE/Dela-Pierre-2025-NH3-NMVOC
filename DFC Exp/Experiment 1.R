@@ -233,7 +233,7 @@ dat$air.temp.K <- dat$temp + 273.15
 dat$air.flow <- 2.28 * 1000 # L min^-1 
 
 #Chamber Area Calculation#
-dat$dfc.area <- (0.7/2)**2 * 3.14 #m^
+dat$dfc.area <- (0.7/2)**2 * 3.14 #m^2
 
 
 #Constants for flux calculation#
@@ -306,6 +306,12 @@ g <- ggplot(dat, aes(x = elapsed.time, y = NH3.flux, color = group)) +
   # Set up legend and print
   guides(color = guide_legend(nrow = 2)); g
 
+ggsave(filename = '/Users/AU775281/Documents/GitHub/Flavia-Project/DFC Exp/NH3_Flux_Ex1.png', 
+       plot = g, 
+       width = 15, 
+       height = 12, 
+       dpi = 400)
+
 ################################################################################################################################
 #Cumulative plot#
 
@@ -313,7 +319,7 @@ dat <- dat %>% filter(elapsed.time != 139, elapsed.time != 137)
 
 # Calculate cumulative emissions using mintegrate function 
 source("Functions/mintegrate.R")
-dat$cum.treat <- mintegrate(dat$elapsed.time, dat$NH3.flux, by = dat$valve, method = 'trap') #(NH3-N mg m^-2)
+dat$cum.treat <- mintegrate((dat$elapsed.time*60), dat$NH3.flux, by = dat$valve, method = 'trap') #(NH3-N mg m^-2)
 
 ################################################################################################################################
 ####Checking#####################################################################################################################
@@ -336,7 +342,6 @@ indsum <- dat_last %>%
   select(valve, treatment, cum.emis) %>%
   distinct()
 
-<<<<<<< HEAD
 ################################################################################################################################
 ####Checking#####################################################################################################################
 ggplot(indsum, aes(treatment, cum.emis, color = treatment)) + geom_point()
@@ -350,32 +355,6 @@ names(cumsum)[2] <- "cum.emis"
 ####Checking#####################################################################################################################
 ggplot(cumsum, aes(treatment, cum.emis, color = treatment)) + geom_point()
 ################################################################################################################################
-=======
-str(indsum)
-indsum %>% group_by(treatment) %>% count() # something is wrong with the 'treatment' column... 
-
-indsum$treatment <- as.character(paste(indsum$treatment)) # still not working
-indsum %>% group_by(treatment) %>% count()
-
-indsum$treatment <- as.factor(indsum)
-indsum %>% group_by(treatment) %>% count() # what is going on
-
-indsum$treatment <- trimws(indsum$treatment)
-indsum %>% group_by(treatment) %>% count() # still not working.... 
-
-indsum$treatment <- gsub("[[:space:]]", "", indsum$treatment)
-indsum %>% group_by(treatment) %>% count() # what is going on
-
-unique(indsum$treatment) # Now I'm more confused
-
-#Summarize cumulative emissions by treatment (average across last time points for each treatment)
-cumsum <- indsum %>% 
-  group_by(treatment) %>% 
-  summarize(cum.emis.avg = mean(cum.emis))
-
-cumsum <- aggregate(indsum$cum.emis, by = list(treatment = indsum$treatment), FUN = mean)
-
->>>>>>> bbd43b5b3d84d9d433808b3d8c5daeabddb4a39b
 
 # Plot cumugroup# Plot cumulative emissions for each treatment with points and boxplot for averages
 cumsum_plot <- ggplot(indsum, aes(x = treatment, y = cum.emis, color = treatment)) +  
@@ -407,20 +386,18 @@ cumsum_plot <- ggplot(indsum, aes(x = treatment, y = cum.emis, color = treatment
 
 ################################################################################################################################
 
-# Define global TAN valveue (mg/L) and chamber volume (Liters)
+# Define TAN value (mg/L) and chamber volume (Liters)
 Tan.volume <- 1.33  # Liters per chamber
 Tan.conc <- 2519    # TAN concentration in mg/L
-Tan.conc <- Tan.volume * Tan.conc  #mg/L/chamber
-
 
 # Calculate total (mg/L)/chamber
 total_tan <- Tan.conc * Tan.volume 
-dat_last$total_tan <- total_tan
+
    
 # Calculate TAN fractional loss using total TAN valve
 dat_last <- dat_last %>%
   mutate(
-    tanloss = (cum.emis / total_tan) *100
+    tanloss = ((cum.emis) / total_tan) *100
   )
 
 # Prepare summary data for visualization
@@ -433,7 +410,7 @@ indsum.tan <- dat_last %>%
 cumsum.tan <- aggregate(indsum.tan$tanloss, by = list(treatment = indsum$treatment), FUN = function(x) mean(x, na.rm = TRUE))
 names(cumsum.tan)[2] <- "tanloss"
 
-# Plot the TAN loss fraction for each treatment, including a boxplot for average valveues
+# Plot the TAN loss fraction for each treatment
 tan.loss <- ggplot(indsum.tan, aes(x = treatment, y = tanloss, color = treatment)) +  
   geom_point(size = 2, alpha = 0.7) +  
   geom_boxplot(data = cumsum.tan, aes(x = treatment, y = tanloss, color = treatment), 
@@ -462,13 +439,19 @@ tan.loss <- ggplot(indsum.tan, aes(x = treatment, y = tanloss, color = treatment
     axis.text.x = element_text(angle = 45, hjust = 1)
   ); tan.loss
 
+ggsave(filename = '/Users/AU775281/Documents/GitHub/Flavia-Project/DFC Exp/Figures.png', 
+       plot = tan.loss, 
+       width = 15, 
+       height = 12, 
+       dpi = 400)
+
 ############################################################################################
 
 ## The end of Flavia experiment 1 ####
 
 
 
-
+write.csv(indsum, file = "cum.csv", row.names = FALSE)
 
 
 
