@@ -121,7 +121,7 @@ valve_data <- dat %>%
     valve %in% c(4, 11, 17) ~ 'Medium acid',
     valve %in% c(7, 13, 19) ~ 'High acid',
     valve %in% c(5, 9, 16) ~ 'Background',
-    valve %in% c(1, 8, 12, 18) ~ 'Open plot'
+    valve %in% c(1, 8, 12, 18) ~ 'Machine plot'
   )
   )
 dat <- rbind(valve_data)
@@ -145,7 +145,7 @@ ggplot(DFC.bg, aes(elapsed.time, NH3_30s, color = group)) + geom_point()
 
 
 #DFC outlet data#
-DFC <- dat[valve_data$group%in% c('No acid', 'Low acid', 'Medium acid', 'High acid', 'Open plot'), ]
+DFC <- dat[valve_data$group%in% c('No acid', 'Low acid', 'Medium acid', 'High acid', 'Machine plot'), ]
 names(DFC)[2] <- "NH3.DFC"
 
 ################################################################################################################################
@@ -222,7 +222,7 @@ head(weather$date.time.weather)
 dat <- left_join(dat, weather, by = c('date.time' = 'date.time.weather'))
 ################################################################################################################################
 
-#Convert temperture from C to F#
+#Convert temperature from C to F#
 dat$temp <- as.numeric(dat$temp)
 dat$air.temp.K <- dat$temp + 273.15
 ################################################################################################################################
@@ -268,26 +268,25 @@ ggplot(dat, aes(treatment, NH3.flux, colour = group)) + geom_point()
 ################################################################################################################################
 ################################################################################################################################
 
-
 ###############################################################################################################################
 #NH3 flux plotting#
 # Plot NH3 Flux Over Time by Treatment
 
+dat$group <- factor(dat$group, levels = c("No acid", "Low acid", "Medium acid", "High acid", "Machine plot"))
 
 g <- ggplot(dat, aes(x = elapsed.time, y = NH3.flux, color = group)) +
   geom_point(size = 1.5, alpha = 0.8) + 
   geom_line(aes(group=valve)) + 
-  scale_color_viridis_d() +
+  scale_color_brewer(palette = "Set1") +
   scale_x_continuous(breaks = seq(0, 290, by = 30)) +
   scale_y_continuous(
-    breaks = seq(0, 13, by = 2),  # Adjust breaks to your desired range
+    breaks = seq(0, 13, by = 2),  
   ) +
   
   # Axis labels and title, with ammonia flux
   labs(
-    title = expression(paste("NH"[3], " Flux Over Time")),
     y = expression(paste(NH[3], " Flux (mg NH"[3]-N, " * m"^-2, " * min"^-1, ")")),
-    x = "Elapsed Time (hours)",
+    x = "Time after slurry application (hours)",
     color = "Treatment"
   ) +
   
@@ -304,16 +303,18 @@ g <- ggplot(dat, aes(x = elapsed.time, y = NH3.flux, color = group)) +
   ) +
   
   # Set up legend and print
-  guides(color = guide_legend(nrow = 2)); g
+  guides(color = guide_legend(nrow = 1)); g
 
 ggsave(filename = '/Users/AU775281/Documents/GitHub/Flavia-Project/DFC Exp/Figures/NH3_Flux_Ex1.png', 
        plot = g, 
-       width = 15, 
-       height = 12, 
+       width = 10, 
+       height = 8, 
        dpi = 400)
 
 ################################################################################################################################
-#Cumulative plot#
+
+
+#Cumulative emissions with plot#
 
 dat <- dat %>% filter(elapsed.time != 139, elapsed.time != 137)
 
@@ -368,7 +369,7 @@ cumsum_plot <- ggplot(indsum, aes(x = treatment, y = cum.emis, color = treatment
     y = expression(paste(NH[3], "-N (mg * m"^-2, ")"))
   ) + 
   scale_x_discrete(labels = c(
-    '0-bls' = 'Open plot',
+    'Mp' = 'Machine plot',
     '0-bp' = 'No acid',
     '1.5' = 'Low acid',
     '2.9' = 'Medium acid',
@@ -388,6 +389,7 @@ write.csv(indsum, file = 'Cumulative_emissions_Ex1.csv', row.names = FALSE)
 
 ################################################################################################################################
 
+#Loss of TAN with plot#
 #Import TAN Data#
 header <- c('Id', 'Treatment', 'g Slurry', 'Dilution Factor', 'N-NH4', 'N-NH4 mg/L')
 Tan <- read.csv('Tan analysis.csv', fill = T, stringsAsFactors = F)
@@ -395,7 +397,7 @@ Tan <- Tan [, -c(1, 3:5)]
 Tan$treatment <- as.factor(Tan$treatment)
 
 #Calculate mean#
-tan.mean <- aggregate(Tan$`N.NH4.mg.L`, by = list(treatment = Tan$treatment), FUN = mean, na.rm = TRUE) #mg/L
+tan.mean <- aggregate(Tan$`N.NH4.mg.L`, by = list(treatment = Tan$treatment), FUN = function(x) mean(x, na.rm = TRUE) #mg/L
 names(tan.mean)[2] <- "mean"
 
 #Calculate TAN applied in mg/m^2#
@@ -406,23 +408,23 @@ tan.mean$totaltan <- (tan.mean$mean* tan.mean$volume.applied) #mg/m^2
 dat_last <- dat_last %>%
   left_join(tan.mean %>% select(treatment, totaltan), by = "treatment")
 
-# Calculate TAN fractional loss using total TAN valve
+# Calculate TAN fractional loss using total TAN valve#
 dat_last <- dat_last %>%
   mutate(
     tanloss = ( cum.emis/ totaltan) *100
   )
 
-# Prepare summary data for visualization
+# Prepare summary data for visualization#
 # Individual TAN fractional loss data
 indsum.tan <- dat_last %>%
   select(treatment, tanloss) %>%
   distinct()
 
-# Average TAN loss fraction for plotting
+# Average TAN loss fraction for plotting#
 cumsum.tan <- aggregate(indsum.tan$tanloss, by = list(treatment = indsum$treatment), FUN = function(x) mean(x, na.rm = TRUE))
 names(cumsum.tan)[2] <- "tanloss"
 
-# Plot the TAN loss fraction for each treatment
+# Plot the TAN loss fraction for each treatment#
 tan.loss <- ggplot(indsum.tan, aes(x = treatment, y = tanloss, color = treatment)) +  
   geom_point(size = 2, alpha = 0.7) +  
   geom_boxplot(data = cumsum.tan, aes(x = treatment, y = tanloss, color = treatment), 
@@ -433,32 +435,31 @@ tan.loss <- ggplot(indsum.tan, aes(x = treatment, y = tanloss, color = treatment
     x = "Treatment",  
     y= expression("Loss of TAN (% of applied)")
   ) + 
-
   scale_x_discrete(labels = c(
-    '0-bls' = 'Open plot',
+    'Mp' = 'Machine plot',
     '0-bp' = 'No acid',
     '1.5' = 'Low acid',
     '2.9' = 'Medium acid',
     'bkg' = 'Background',
     '5.7' = 'High acid'
   )) +  
+  scale_color_brewer(palette = "Set1") +
   theme(
     axis.title = element_text(size = 14),
     axis.text = element_text(size = 12),
     strip.text = element_blank(),             
     legend.title = element_blank(),                     
-    legend.position = "right",                          
+    legend.position = "none",                          
     axis.text.x = element_text(angle = 45, hjust = 1)
   ); tan.loss
 
 ggsave(filename = '/Users/AU775281/Documents/GitHub/Flavia-Project/DFC Exp/Figures/Tan_loss_Ex1.png', 
        plot = tan.loss, 
-       width = 15, 
-       height = 12, 
+       width = 10, 
+       height = 8, 
        dpi = 400)
 
 ############################################################################################
-
 ## The end of Flavia experiment 1 ####
 
 
