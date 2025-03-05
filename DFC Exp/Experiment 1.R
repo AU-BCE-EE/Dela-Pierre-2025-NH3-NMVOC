@@ -262,6 +262,8 @@ ggplot(dat, aes(treatment, n, colour = group)) + geom_point() ## mol * L^-1
 #Calculation of flux, from mol * L^-1 to mg.NH3 * min^-1 * m^-2#
 dat$NH3.flux <- ((dat$n * M.N * dat$air.flow) / dat$dfc.area) * 1000
 
+#Calculation of flux, from mol * L^-1 to ug * s * m2#
+#dat$NH3.flux <- ((dat$n * M.N * dat$air.flow) / dat$dfc.area) * (1000000/60)
 ################################################################################################################################
 ####Checking#####################################################################################################################
 ggplot(dat, aes(treatment, NH3.flux, colour = group)) + geom_point()
@@ -280,11 +282,12 @@ g <- ggplot(dat, aes(x = elapsed.time, y = NH3.flux, color = group)) +
   scale_color_brewer(palette = "Set1") +
   scale_x_continuous(breaks = seq(0, 290, by = 30)) +
   scale_y_continuous(
-    breaks = seq(0, 13, by = 2),  
+    breaks = seq(0, 180, by = 25),  
   ) +
   
   # Axis labels and title, with ammonia flux
   labs(
+    #y = expression(paste(NH[3], " Flux (µg NH"[3]-N, " * m"^-2, " * sec"^-1, ")")),
     y = expression(paste(NH[3], " Flux (mg NH"[3]-N, " * m"^-2, " * min"^-1, ")")),
     x = "Time after slurry application (hours)",
     color = "Treatment"
@@ -305,12 +308,18 @@ g <- ggplot(dat, aes(x = elapsed.time, y = NH3.flux, color = group)) +
   # Set up legend and print
   guides(color = guide_legend(nrow = 1)); g
 
-ggsave(filename = '/Users/AU775281/Documents/GitHub/Flavia-Project/DFC Exp/Figures/NH3_Flux_Ex1.png', 
-       plot = g, 
-       width = 10, 
-       height = 8, 
-       dpi = 400)
+#ggsave(filename = '/Users/AU775281/Documents/GitHub/Flavia-Project/DFC Exp/Figures/NH3_Flux_Ex1.png', 
+       #plot = g, 
+       #width = 10, 
+       #height = 8, 
+       #dpi = 400)
 
+#ggsave(filename = '/Users/AU775281/Documents/GitHub/Flavia-Project/DFC Exp/Figures/NH3_Flux_Ex1_Ug.png', 
+       #plot = g, 
+       #width = 10, 
+       #height = 8, 
+       #dpi = 400)
+#write.csv(dat, file = 'NH3_Flux_Ex1.csv', row.names = FALSE)
 ################################################################################################################################
 
 
@@ -321,6 +330,7 @@ dat <- dat %>% filter(elapsed.time != 139, elapsed.time != 137)
 # Calculate cumulative emissions using mintegrate function 
 source("Functions/mintegrate.R")
 dat$cum.treat <- mintegrate((dat$elapsed.time*60), dat$NH3.flux, by = dat$valve, method = 'trap') #(NH3-N mg m^-2)
+#dat$cum.treat <- mintegrate((dat$elapsed.time*3600), dat$NH3.flux, by = dat$valve, method = 'trap') #(NH3-N µg m^-2)
 
 ################################################################################################################################
 ####Checking#####################################################################################################################
@@ -385,7 +395,8 @@ cumsum_plot <- ggplot(indsum, aes(x = treatment, y = cum.emis, color = treatment
     axis.text.x = element_text(angle = 45, hjust = 1)
   ); cumsum_plot
 
-write.csv(indsum, file = 'Cumulative_emissions_Ex1.csv', row.names = FALSE)
+#write.csv(indsum, file = 'Cumulative_emissions_Ex1.csv', row.names = FALSE)
+#write.csv(indsum, file = 'Cumulative_emissions_Ex1_Ug.csv', row.names = FALSE)
 
 ################################################################################################################################
 
@@ -395,9 +406,10 @@ header <- c('Id', 'Treatment', 'g Slurry', 'Dilution Factor', 'N-NH4', 'N-NH4 mg
 Tan <- read.csv('Tan analysis.csv', fill = T, stringsAsFactors = F)
 Tan <- Tan [, -c(1, 3:5)]
 Tan$treatment <- as.factor(Tan$treatment)
+#Tan$N.NH4.mg.L <- Tan$N.NH4.mg.L * 1000
 
-#Calculate mean#
-tan.mean <- aggregate(Tan$`N.NH4.mg.L`, by = list(treatment = Tan$treatment), FUN = function(x) mean(x, na.rm = TRUE) #mg/L
+# Calculate mean
+tan.mean <- aggregate(Tan$`N.NH4.mg.L`, by = list(treatment = Tan$treatment), FUN = function(x) mean(x, na.rm = TRUE))  # mg/L
 names(tan.mean)[2] <- "mean"
 
 #Calculate TAN applied in mg/m^2#
@@ -453,12 +465,19 @@ tan.loss <- ggplot(indsum.tan, aes(x = treatment, y = tanloss, color = treatment
     axis.text.x = element_text(angle = 45, hjust = 1)
   ); tan.loss
 
-ggsave(filename = '/Users/AU775281/Documents/GitHub/Flavia-Project/DFC Exp/Figures/Tan_loss_Ex1.png', 
+#ggsave(filename = '/Users/AU775281/Documents/GitHub/Flavia-Project/DFC Exp/Figures/Tan_loss_Ex1.png', 
        plot = tan.loss, 
        width = 10, 
        height = 8, 
        dpi = 400)
 
+#ggsave(filename = '/Users/AU775281/Documents/GitHub/Flavia-Project/DFC Exp/Figures/Tan_loss_Ex1_ug.png', 
+       plot = tan.loss, 
+       width = 10, 
+       height = 8, 
+       dpi = 400)
+#write.csv(indsum.tan, file = 'Tan loss.csv', row.names = FALSE)
+#write.csv(indsum.tan, file = 'Tan loss_ug.csv', row.names = FALSE)
 ############################################################################################
 ## The end of Flavia experiment 1 ####
 
