@@ -251,23 +251,18 @@ for (i in 1:19) {
   # Define column names
   dfc_col <- paste0("voc.dfc", i)
   bg_col <- paste0("voc.bg", i)
-  corr_col <- paste0("voc_corr", i)  # New corrected column name
   
   # Check if columns exist in the data frame
   if (dfc_col %in% names(DFC) && bg_col %in% names(DFC)) {
     # Subtract background from outlet and store in a new column
-    DFC[[corr_col]] <- DFC[[dfc_col]] - DFC[[bg_col]]
-    
-    # Set negative values to zero
-    DFC[[corr_col]][DFC[[corr_col]] < 0] <- 0
-  } else {
-    warning(paste("Columns", dfc_col, "or", bg_col, "do not exist in the data frame"))
-  }
+    DFC[[paste0("voc_corr", i)]] <- DFC[[dfc_col]] - DFC[[bg_col]]
+  } 
 }
 
 #Rebind again in dat datasheet#
 dat <- rbind(DFC)
 dat <- dat[order(dat$treatment), ]
+
 
 #Import Weather Data and filter data#
 header <- c('date', 'time', 'temp')
@@ -385,113 +380,81 @@ columns_to_delete <- c(
 
 # Remove the identified columns from the dat data frame
 dat <- dat %>% select(-all_of(columns_to_delete))
+
 dat <- dat[, -c(2, 4:29)]
-dat <- dat %>% 
-  filter(elapsed.time >= 0 & elapsed.time <= 120)
 
 #Rename vocs
 dat <- dat %>%
   rename(
-    Methanol = voc_flux1,
-    `Hydrogen sulfide` = voc_flux2,
-    `4-Methylphenol` = voc_flux3,
-    `Acetic acid` = voc_flux4,
-    `Butanoic acid` = voc_flux5,
-    `Pentanoic acid` = voc_flux6,
-    `Propanoic acid` = voc_flux7,
-    Acetaldehyde = voc_flux8,
-    `Formic acid` = voc_flux9,
-    Methanethiol = voc_flux10,
-    Acetone = voc_flux11,
-    Trimethylamine = voc_flux12,
-    `Dimethyl sulfide` = voc_flux13,
-    Isoprene = voc_flux14,
-    Butanone = voc_flux15,
-    Butanedione = voc_flux16,
-    Phenol = voc_flux17,
-    `4-ethyl phenol` = voc_flux18,
-    `Methyl indole` = voc_flux19
+    methanol = voc_flux1,
+    H2S = voc_flux2,
+    `4_Methylphenol` = voc_flux3,
+    acetic_acid = voc_flux4,
+    butanoic_acid = voc_flux5,
+    pentanoic_acid = voc_flux6,
+    propanoic_acid = voc_flux7,
+    acetladheyde = voc_flux8,
+    formic_acid = voc_flux9,
+    methanthiol = voc_flux10,
+    acetone = voc_flux11,
+    trimethylamine = voc_flux12,
+    dimethyl_sulfide = voc_flux13,
+    isopren = voc_flux14,
+    butanone = voc_flux15,
+    butandion = voc_flux16,
+    phenol = voc_flux17,
+    `4_ethyl_phenol` = voc_flux18,
+    methyl_indole = voc_flux19
   )
 
 
 # Define the groups for each VOC
 voc_groups <- c(
-  `Acetic acid` = "Carboxylic Acids",
-  `Butanoic acid` = "Carboxylic Acids",
-  `Pentanoic acid` = "Carboxylic Acids",
-  `Propanoic acid` = "Carboxylic Acids",
-  `Formic acid` = "Carboxylic Acids",
-  `Methyl indole` = "Indole",
-  `4-Methylphenol` = "Phenols",
-  Phenol = "Phenols",
-  `4-ethyl phenol` = "Phenols",
-  `Hydrogen sulfide` = "Volatile Sulfur Compounds (VSC)",
-  Methanethiol = "Volatile Sulfur Compounds (VSC)",
-  `Dimethyl sulfide` = "Volatile Sulfur Compounds (VSC)",
-  Methanol = "Other",
-  Acetaldehyde = "Other",
-  Acetone = "Other",
-  Trimethylamine = "Other",
-  Isoprene = "Other",
-  Butanone = "Other",
-  Butanedione = "Other"
+  acetic_acid = "Carboxylic Acids",
+  butanoic_acid = "Carboxylic Acids",
+  pentanoic_acid = "Carboxylic Acids",
+  propanoic_acid = "Carboxylic Acids",
+  formic_acid = "Carboxylic Acids",
+  methyl_indole = "Indole",
+  `4_Methylphenol` = "Phenols",
+  phenol = "Phenols",
+  `4_ethyl_phenol` = "Phenols",
+  H2S = "Volatile Sulfur Compounds (VSC)",
+  methanthiol = "Volatile Sulfur Compounds (VSC)",
+  dimethyl_sulfide = "Volatile Sulfur Compounds (VSC)",
+  methanol = "Other",
+  acetladheyde = "Other",
+  acetone = "Other",
+  trimethylamine = "Other",
+  isopren = "Other",
+  butanone = "Other",
+  benzen = "Other",
+  butandion = "Other"
 )
-#write.csv(dat, file = "Voc flux.csv", row.names = T )
+
 # Convert data to long format
 dat_long <- dat %>%
   pivot_longer(
-    cols = c(Methanol:`Hydrogen sulfide`, `4-Methylphenol`:`Methyl indole`), 
+    cols = c(methanol:H2S, `4_Methylphenol`:methyl_indole), 
     names_to = "VOC", 
     values_to = "Flux"
   )
-desired_order <- c("Acetic acid", "Acetaldehyde", "Acetone", "Butanedione", "Butanoic acid", 
-                   "Butanone", "Dimethyl sulfide", "Formic acid", "Hydrogen sulfide", "Isoprene", 
-                   "Methanol", "Methanethiol", "Methyl indole", "Pentanoic acid", 
-                   "Phenol", "Propanoic acid", "Trimethylamine", "4-ethyl phenol", 
-                   "4-Methylphenol")
+desired_order <- c("acetic_acid", "acetladheyde", "acetone", "butandion", "butanoic_acid", 
+                   "butanone", "dimethyl_sulfide", "formic_acid", "H2S", "isopren", 
+                   "methanol", "methanthiol", "methyl_indole", "pentanoic_acid", 
+                   "phenol", "propanoic_acid", "trimethylamine", "4_ethyl_phenol", 
+                   "4_Methylphenol")
 
 dat_long$VOC<- factor(dat_long$VOC, levels = desired_order)
 # Create the plot
-treatment_labels <- c(
-  'Mp' = 'Machine plot',
-  '0-bp' = 'No acid',
-  '1.5' = 'Low acid',
-  '2.9' = 'Medium acid',
-  'bkg' = 'Background',
-  '5.7' = 'High acid'
-)
-
-treatment_colors <- c(
-  "0-bp" = "#4e79a7",
-  "1.5" = "#f28e2b",
-  "2.9" = "#e15759",
-  "2.7" = "#76b7b2",
-  "Mp" = "#59a14f"
-)
-
-vocplot <- ggplot(dat_long, aes(x = elapsed.time, y = Flux, colour = treatment)) +  # Map to treatment instead of group
+vocplot <- ggplot(dat_long, aes(x = elapsed.time, y = Flux, colour = group)) + 
   geom_point(size = 0.4) +  # Adjust point size
   geom_line(aes(group = valve), linewidth = 0.5) +  
   facet_wrap(~ VOC, scales = "free_y") + 
-  labs(
-    x = "Time after slurry application (hours)", 
-    y = expression(Mass ~ emission ~ (mg ~ m^{-2} ~ min^{-1}))
-  ) +
-  scale_color_manual(values = treatment_colors) +  # Apply custom colors
-  theme_minimal(base_size = 10) +  # Set base font size for readability
-  theme(
-    strip.text = element_text(size = 10, face = "bold"),  
-    legend.title = element_blank(),  # Remove legend title
-    legend.text = element_text(size = 10, face = "bold"),  # Legend text size
-    legend.position = "bottom",  # Move legend below the plot
-    plot.title = element_text()  # Center plot title
-  );vocplot
-#ggsave ("/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Adjusted/DFC VOC Figures/VOC mass emission.png", 
-plot = vocplot,
-width = 12, 
-height = 10, 
-dpi = 300,
-bg = "white")
+  labs(x = "Time after slurry application (hours)", y = ("mg/m2/min")) +
+  theme_minimal();vocplot
+#ggsave("Figure/endhours/voc flux.png", plot = vocplot)
+
 ####################################################################
 # Ensure the treatment variable is a factor with the correct levels
 dat_long$treatment <- factor(dat_long$treatment, levels = c('Mp', '0-bp', '1.5', '2.9', 'bkg', '5.7'))
@@ -504,13 +467,12 @@ sum.voc <- dat_long %>%
   group_by(elapsed.time, treatment, Group) %>%
   summarize(Sum_Flux = sum(Flux, na.rm = TRUE), .groups = 'drop')
 
-# Define color scheme
 custom_colors <- c(
-  "Carboxylic Acids" = "#4e79a7",
-  "Volatile Sulfur Compounds (VSC)" = "#f28e2b",
-  "Phenols" = "#e15759",
-  "Other" = "#76b7b2",
-  "Indole" = "#59a14f"
+  "Carboxylic Acids" = "#E69F00", 
+  "Indole" = "#56B4E9", 
+  "Other" = "#009E73", 
+  "Phenols" = "#F0E442", 
+  "Volatile Sulfur Compounds (VSC)" = "#CC79A7"
 )
 
 # Define a named vector for the facet labels
@@ -529,10 +491,10 @@ vocflux <- ggplot(sum.voc, aes(x = elapsed.time, y = Sum_Flux, fill = Group)) +
   scale_fill_manual(values = custom_colors) +  # Use custom colors
   labs(
     x = "Time after slurry application (hours)",
-    y = expression(Mass ~ emission ~ (mg ~ m^{-2} ~ min^{-1}))
+    y = ("mg/m2/min")
   ) + 
   facet_wrap(~ treatment, scales = "fixed", ncol = 3, labeller = as_labeller(facet_labels)) +  # Flexible grid layout with custom labels
-  theme_minimal(base_size = 10) +  # Increase base font size for larger elements
+  theme_minimal(base_size = 15) +  # Increase base font size for larger elements
   theme(
     # Titles
     plot.title = element_text(size = 24, face = "bold", hjust = 0.5),
@@ -540,7 +502,7 @@ vocflux <- ggplot(sum.voc, aes(x = elapsed.time, y = Sum_Flux, fill = Group)) +
     
     # Axes
     axis.title.x = element_text(size = 15),
-    axis.title.y = element_text(size = 12),
+    axis.title.y = element_text(size = 15),
     axis.text = element_text(size = 12),
     axis.line = element_line(color = "gray50", linewidth = 0.5),
     
@@ -551,7 +513,7 @@ vocflux <- ggplot(sum.voc, aes(x = elapsed.time, y = Sum_Flux, fill = Group)) +
     legend.key.size = unit(0.5, "cm"),
     
     # Facets
-    strip.text = element_text(size = 12, face = "bold", color = "white"),
+    strip.text = element_text(size = 15, face = "bold", color = "white"),
     strip.background = element_rect(fill = "gray70", linewidth = 0.4),
     
     # Background and Grid
@@ -559,118 +521,11 @@ vocflux <- ggplot(sum.voc, aes(x = elapsed.time, y = Sum_Flux, fill = Group)) +
     panel.grid.minor = element_blank(),
     panel.border = element_rect(color = "gray60", fill = NA, linewidth = 0.5)
   ) +
-  scale_x_continuous(
-    limits = c(0, 119),
-    breaks = seq(0, 120, by = 20) # Set x-axis limits from 0 to 119
-  ) +
   guides(
     fill = guide_legend(nrow = 1)  # Arrange legend in a single row
   ); vocflux
-#ggsave ("/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Adjusted/Figure/voc flux neg set zero group.png", plot = vocflux)
+#ggsave ("Figure/endhours/voc flux group.png", plot = vocflux)
 
-####################################################################
-####################################################################
-####################################################################
-#---- Hourly %----------------
-alpha_value <- 0.6
-hourly_data <- sum.voc %>%
-  mutate(
-    # Ensure elapsed time is rounded to the nearest multiple of 5
-    elapsed.time = floor(elapsed.time / 10) * 10,
-    hour_label = sprintf("%d-%d", elapsed.time, elapsed.time + 10)
-  ) %>%
-  group_by(elapsed.time, hour_label, treatment, Group) %>%  # Group by treatment as well
-  summarise(
-    Category_Sum = sum(Sum_Flux, na.rm = TRUE),
-    .groups = 'drop'
-  ) %>%
-  group_by(elapsed.time, treatment) %>%  # Group by elapsed.time and treatment before percentage calc
-  mutate(
-    Total = sum(Category_Sum, na.rm = TRUE),  # Sum within each treatment separately
-    Percentage = (Category_Sum / Total) * 100
-  ) %>%
-  filter(!is.na(Group))  # Ensure no NA Groups
-
-# Define facet labels
-facet_labels <- c(
-  'Mp' = 'Machine plot',
-  '0-bp' = 'No acid',
-  '1.5' = 'Low acid',
-  '2.9' = 'Medium acid',
-  'bkg' = 'Background',
-  '5.7' = 'High acid'
-)
-
-# Faceted plot for each treatment
-# Faceted plot for each treatment with adjusted x-axis labels
-Hourly <- ggplot(hourly_data, 
-                     aes(x = elapsed.time, y = Percentage, fill = Group)) +
-  geom_bar(position = "stack",
-           stat = "identity",
-           width = 8,  # Reduced bar width
-           alpha = alpha_value) +
-  scale_x_continuous(
-    limits = c(-7, 120),  # Show up to 100
-    breaks = seq(0, 110, by = 10),  # Last break at 95
-    labels = sprintf("%d-%d", 
-                     seq(0, 110, by = 10),
-                     seq(10, 120, by = 10)),  # Last label shows 95-100
-    expand = c(0, 0)
-  ) +
-  scale_fill_manual(values = custom_colors) +  
-  labs(
-    x = "Time after slurry application (hours)",
-    y = "Mass emission (%)"
-  ) +
-  facet_wrap(~ treatment, scales = "fixed", ncol = 3, labeller = as_labeller(facet_labels)) +
-  theme_minimal(base_size = 5) +
-  theme(
-    
-    # Axes
-    axis.title.x = element_text(size = 15),
-    axis.title.y = element_text(size = 10),
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),  # Rotate x-axis labels
-    axis.text.y = element_text(size = 10),
-    
-    # Legend
-    legend.title = element_blank(),
-    legend.text = element_text(size = 10),
-    legend.position = "bottom",
-    # Facet labels
-    strip.text = element_blank(),  # Removes treatment names
-    
-    # Background and Grid
-    panel.border = element_rect(color = "gray70", fill = NA, linewidth = 0.5)
-  ) +
-  guides(
-    fill = guide_legend(nrow = 1)
-  ); Hourly
-
-# Combine with precise alignment
-
-library(cowplot)
-# Modify vocflux: Remove x-axis elements and legend
-vocflux <- vocflux +
-  theme(
-    legend.position = "none",     # Remove legend
-    axis.title.x = element_blank(),  # Remove x-axis title
-    axis.text.x = element_blank(),   # Remove x-axis labels
-    axis.ticks.x = element_blank()   # Remove x-axis ticks
-  )
-# Combine plots
-combined_plot <- plot_grid(
-  vocflux, Hourly,
-  ncol = 1,
-  align = "v",
-  axis = "lr",
-  rel_heights = c(0.6, 0.4)
-);combined_plot
-#ggsave ("/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Adjusted/DFC VOC Figures/VOC mass emission by category.png", 
-        plot = combined_plot,
-        width = 12, 
-        height = 10, 
-        dpi = 300,
-        bg = "white")
 
 ####################################################################
 ####################################################################
@@ -699,6 +554,7 @@ cum.dat <- cum.dat [, -c(5:30)]
 cum.dat <- cum.dat %>%
   rename_with(~paste0("cum.emis", seq_along(.)), starts_with("cum.treat")) %>%
   group_by(treatment)
+
 
 #Filter the data to get the last time point for each valve-treatment group
 dat_last <- cum.dat %>%
@@ -781,15 +637,6 @@ category<- c(
   butandion = "Other"
 )
 
-# Define color scheme
-treatment_colors <- c(
-  "0-bp" = "#4e79a7",
-  "1.5" = "#f28e2b",
-  "2.9" = "#e15759",
-  "2.7" = "#76b7b2",
-  "Mp" = "#59a14f"
-)
-
 # Apply factor ordering
 indsum_long <- indsum_long %>%
   mutate(
@@ -799,16 +646,15 @@ indsum_long <- indsum_long %>%
 
 # Plot cumulative emissions for each treatment across all cum.emis columns
 cumsum_plot <- ggplot(indsum_long, aes(x = treatment, y = emis, color = treatment)) +  
-  geom_point(size = 2, alpha = 0.6) +  
-  geom_boxplot(aes(fill = treatment), color = "gray20", show.legend = FALSE) +  # Black outline for boxplot
-  scale_fill_manual(values = treatment_colors) +  # Fill color for boxplot
-  scale_color_manual(values = treatment_colors) +  # Color for points
-  facet_wrap(~VOC, scales = "free_y") +  
+  geom_point(size = 2, alpha = 0.7) +  
+  geom_boxplot(aes(x = treatment, y = emis, color = treatment), 
+               show.legend = FALSE) +  
+  facet_wrap(~VOC, scales = "free_y") +  # Create separate plots for each cum.emis column
   theme_bw() +
   labs(
     title = "Cumulative Emissions by Treatment",  
     x = "Treatment",  
-    y = expression(Mass ~ emission ~ (mg ~ m^{-2}))
+    y = "mg/m2"
   ) + 
   scale_x_discrete(labels = c(
     'Mp' = 'Machine plot',
@@ -819,31 +665,191 @@ cumsum_plot <- ggplot(indsum_long, aes(x = treatment, y = emis, color = treatmen
     '5.7' = 'High acid'
   )) +  
   theme(
-    axis.title = element_text(size = 12),
+    axis.title = element_text(size = 14),
     axis.text = element_text(size = 12),
-    strip.text = element_text(size = 10),  
-    legend.position = "none",  # Completely hides the legend
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    plot.title = element_blank()
-  );cumsum_plot
+    strip.text = element_text(size = 10),  # Adjust facet label size
+    legend.title = element_blank(),                     
+    legend.position = "right",                          
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  ); cumsum_plot
+ggsave ("/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Adjusted/Figure/cumulative like NH3 treatments.png", plot = grouped)
 
-#ggsave("/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Adjusted/DFC VOC Figures/Cumulative voc.png", 
-       plot = cumsum_plot, 
-       width = 12, 
-       height = 10, 
-       dpi = 300, 
-       bg = "white")
 
 #################################################
 #------Plot category mintegrate--------
 # Ensure the treatment variable is a factor with the correct levels
 indsum_long$treatment <- factor(indsum_long$treatment, levels = c('Mp', '0-bp', '1.5', '2.9', 'bkg', '5.7'))
 
+
 indsum_mean <- indsum_long %>%
   group_by(elapsed.time, treatment, VOC, category, group) %>%
   summarise(mean_emis = mean(emis, na.rm = TRUE), .groups = "drop")
 
 indsum_cat <- indsum_mean %>%
+  group_by(treatment, category) %>%
+  summarise(mean_emis = sum(mean_emis, na.rm = TRUE), .groups = "drop")
+
+# Define custom colors for categories
+custom_colors <- c(
+  "Carboxylic Acids" = "#E69F00", 
+  "Indole" = "#56B4E9", 
+  "Other" = "#009E73", 
+  "Phenols" = "#F0E442", 
+  "Volatile Sulfur Compounds (VSC)" = "#CC79A7"
+)
+
+# Define a named vector for facet labels
+facet_labels <- c(
+  'Mp' = 'Machine plot',
+  '0-bp' = 'No acid',
+  '1.5' = 'Low acid', 
+  '2.9' = 'Medium acid',
+  'bkg' = 'Background',
+  '5.7' = 'High acid'
+)
+
+# Create the bar plot with facet_wrap
+grouped <- ggplot(indsum_cat, aes(x = category, y = mean_emis, fill = category)) +
+  geom_bar(stat = "identity", position = "dodge") +  # Create bar plot
+  facet_wrap(~treatment, labeller = as_labeller(facet_labels)) +  # Facet by treatment
+  scale_fill_manual(values = custom_colors) +  # Apply custom colors
+  labs(
+    y = "mg/m2",  # Label for y-axis
+    fill = "Category"
+  ) +
+  theme_minimal() +  # Clean theme
+  theme(
+    axis.text.x = element_blank(),  # Remove y-axis labels
+    axis.title.x = element_blank(),  # Remove y-axis title
+    strip.text = element_text(size = 12, face = "bold")  # Format facet labels
+  );grouped
+
+ggsave ("/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Adjusted/Figure/cumulative like NH3 grouped.png", plot = grouped)
+
+
+#################################################
+#------cumulative cumsum--------
+#------Flavia--------
+cum.f <- dat
+
+names(cum.f)[12:30] <- paste0("voc", 1:19)
+# Define the VOC column names
+voc_cols <- paste0("voc", 1:19)
+
+
+cum.f <- cum.f %>%
+  group_by(valve, treatment) %>%                         # Group by 'valve' and 'treatment'
+  arrange(elapsed.time) %>%                              # Ensure data is sorted by elapsed time
+  mutate(across(starts_with("voc"),                       # Apply transformation to VOC columns
+                ~ cumsum(replace_na(. * (elapsed.time * 60), 0)))) %>%  # Multiply by 60 to convert hours to minutes
+  ungroup()
+# Remove grouping structure
+
+cum.f <- cum.f [, -c(5:11)]
+
+#Cumulative emissions by treatment from mintegrate function
+cum.f <- cum.f %>%
+  rename_with(~paste0("cum.emis", seq_along(.)), starts_with("voc")) %>%
+  group_by(treatment)
+
+
+#Filter the data to get the last time point for each valve-treatment group
+dat_f <- cum.f %>%
+  group_by(valve, treatment) %>%
+  filter(row_number() == n()) %>%  
+  ungroup()
+
+# Create a summary dataset for plotting (one point per treatment group)
+indsum.f <- dat_f %>%
+  select(valve, treatment, elapsed.time, starts_with("cum.emis")) %>%
+  distinct()
+
+# Summarize/mean cumulative emissions by treatment
+cumsum.f <- aggregate(. ~ treatment, data = indsum, FUN = function(x) mean(x, na.rm = TRUE))
+
+# Rename columns
+# Create a summary dataset for plotting (one point per treatment group)
+indsum_new.f <- dat_f %>%
+  select(valve, treatment, elapsed.time, group, starts_with("cum.emis")) %>%
+  distinct()
+
+indsum_new.f <- indsum_new.f %>%
+  rename(
+    methanol = cum.emis1,
+    H2S = cum.emis2,
+    `4_Methylphenol` = cum.emis3,
+    acetic_acid = cum.emis4,
+    butanoic_acid = cum.emis5,
+    pentanoic_acid = cum.emis6,
+    propanoic_acid = cum.emis7,
+    acetladheyde = cum.emis8,
+    formic_acid = cum.emis9,
+    methanthiol = cum.emis10,
+    acetone = cum.emis11,
+    trimethylamine = cum.emis12,
+    dimethyl_sulfide = cum.emis13,
+    isopren = cum.emis14,
+    butanone = cum.emis15,
+    butandion = cum.emis16,
+    phenol = cum.emis17,
+    `4_ethyl_phenol` = cum.emis18,
+    methyl_indole = cum.emis19
+  )
+
+# Convert data to long format
+indsum_long.f <- indsum_new.f %>%
+  pivot_longer(
+    cols = -c(valve, treatment, group, elapsed.time),  # Select all columns except valve & treatment
+    names_to = "VOC", 
+    values_to = "emis"
+  )
+
+# Apply factor ordering
+indsum_long.f <- indsum_long.f %>%
+  mutate(
+    VOC = factor(VOC, levels = desired_order),
+    category = recode(VOC, !!!category)  # Assign group categories
+  )
+
+# Plot cumulative emissions for each treatment across all cum.emis columns
+cumsum_plot <- ggplot(indsum_long.f, aes(x = treatment, y = emis, color = treatment)) +  
+  geom_point(size = 2, alpha = 0.7) +  
+  geom_boxplot(aes(x = treatment, y = emis, color = treatment), 
+               show.legend = FALSE) +  
+  facet_wrap(~VOC, scales = "free_y") +  # Create separate plots for each cum.emis column
+  theme_bw() +
+  labs(
+    title = "Cumulative Emissions by Treatment",  
+    x = "Treatment",  
+    y = "Cumulative Emission Value"
+  ) + 
+  scale_x_discrete(labels = c(
+    'Mp' = 'Machine plot',
+    '0-bp' = 'No acid',
+    '1.5' = 'Low acid',
+    '2.9' = 'Medium acid',
+    'bkg' = 'Background',
+    '5.7' = 'High acid'
+  )) +  
+  theme(
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    strip.text = element_text(size = 10),  # Adjust facet label size
+    legend.title = element_blank(),                     
+    legend.position = "right",                          
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  ); cumsum_plot
+
+#------Plot cumulative cumsum--------
+# Ensure the treatment variable is a factor with the correct levels
+indsum_long.f$treatment <- factor(indsum_long.f$treatment, levels = c('Mp', '0-bp', '1.5', '2.9', 'bkg', '5.7'))
+
+
+indsum_mean.f <- indsum_long.f %>%
+  group_by(elapsed.time, treatment, VOC, category, group) %>%
+  summarise(mean_emis = mean(emis, na.rm = TRUE), .groups = "drop")
+
+indsum_cat.f <- indsum_mean.f %>%
   group_by(treatment, category) %>%
   summarise(mean_emis = sum(mean_emis, na.rm = TRUE), .groups = "drop")
 
@@ -856,38 +862,181 @@ facet_labels <- c(
   'bkg' = 'Background',
   '5.7' = 'High acid'
 )
-custom_colors <- c(
-  "Carboxylic Acids" = "#4e79a7",
-  "Volatile Sulfur Compounds (VSC)" = "#f28e2b",
-  "Phenols" = "#e15759",
-  "Other" = "#76b7b2",
-  "Indole" = "#59a14f"
-)
-grouped <- ggplot(indsum_cat, aes(x = category, y = mean_emis, fill = category)) +
-  geom_bar(stat = "identity", position = "dodge", color = "black", size = 0.2) + 
-  facet_wrap(~treatment, labeller = as_labeller(facet_labels), scales = "free_y") +  
-  scale_fill_manual(values = custom_colors) + 
-  labs(
-    y = expression(Mass ~ emission ~ (mg ~ m^{-2})), 
-    fill = "VOC Category"
-  ) +
-  theme_minimal(base_size = 15) +  
-  theme(
-    axis.title.y = element_text(size = 14),
-    axis.text.x = element_blank(),
-    strip.text = element_text(size = 12, face = "bold"),
-    legend.position = "top",  # Position the legend at the top
-    panel.grid.major = element_line(color = "gray80", size = 0.5),  
-    panel.grid.minor = element_line(color = "gray90", size = 0.25),  
-    legend.title = element_text(size = 14, face = "bold"),  #
-    legend.text = element_text(size = 12),  # Format legend text
-    plot.title = element_text(size = 16, face = "bold", hjust = 0.5) 
-  )+
-  geom_text(aes(label = round(mean_emis, 1)), position = position_dodge(width = 0.7), vjust = -0.5, size = 3.5);grouped
 
-#ggsave("/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Adjusted/DFC VOC Figures/Cumulative voc by category .png", 
-       plot = cumsum_plot, 
-       width = 12, 
-       height = 10, 
-       dpi = 300, 
-       bg = "white")
+# Create the bar plot with facet_wrap
+ggplot(indsum_cat.f, aes(x = category, y = mean_emis, fill = category)) +
+  geom_bar(stat = "identity", position = "dodge") +  # Create bar plot
+  facet_wrap(~treatment, labeller = as_labeller(facet_labels)) +  # Facet by treatment
+  scale_fill_manual(values = custom_colors) +  # Apply custom colors
+  labs(
+    y = "Mean Emission",  # Label for y-axis
+    fill = "Category"
+  ) +
+  theme_minimal() +  # Clean theme
+  theme(
+    axis.text.x = element_blank(),  # Remove y-axis labels
+    axis.title.x = element_blank(),  # Remove y-axis title
+    strip.text = element_text(size = 12, face = "bold")  # Format facet labels
+  )
+###################################
+#################################################
+#------cumulative Trap--------
+#------Flavia--------
+
+cum.t <- dat
+
+names(cum.t)[12:30] <- paste0("voc", 1:19)
+# Define the VOC column names
+voc_cols <- paste0("voc", 1:19)
+
+cum.t <- cum.t %>%
+  group_by(valve, treatment) %>%                # Group by 'valve' and 'treatment'
+  arrange(elapsed.time) %>%                     # Ensure data is sorted by elapsed time
+  mutate(across(voc_cols, ~ {
+    # Calculate the time intervals in minutes
+    time_intervals <- c(0, diff(elapsed.time) * 60)  # Convert to minutes
+    
+    # Handle the first row where lag(.) would be NA
+    lagged_values <- lag(.) # lag the VOC values
+    lagged_values[1] <- 0   # Set the lag for the first row to 0 (it has no previous value)
+    
+    # Apply the trapezoidal rule to calculate cumulative emissions
+    cum_emissions <- cumsum(time_intervals * (lagged_values + .) / 2) # Trapezoidal integration
+    return(cum_emissions)
+  })) %>%
+  ungroup()
+# Remove grouping structure
+
+cum.t <- cum.t [, -c(5:11)]
+
+#Cumulative emissions by treatment from mintegrate function
+cum.t <- cum.t %>%
+  rename_with(~paste0("cum.emis", seq_along(.)), starts_with("voc")) %>%
+  group_by(treatment)
+
+
+#Filter the data to get the last time point for each valve-treatment group
+dat_t <- cum.t %>%
+  group_by(valve, treatment) %>%
+  filter(row_number() == n()) %>%  
+  ungroup()
+
+# Create a summary dataset for plotting (one point per treatment group)
+indsum.t <- dat_t %>%
+  select(valve, treatment, elapsed.time, starts_with("cum.emis")) %>%
+  distinct()
+
+# Summarize/mean cumulative emissions by treatment
+cumsum.t <- aggregate(. ~ treatment, data = indsum, FUN = function(x) mean(x, na.rm = TRUE))
+
+# Rename columns
+# Create a summary dataset for plotting (one point per treatment group)
+indsum_new.t <- dat_t %>%
+  select(valve, treatment, elapsed.time, group, starts_with("cum.emis")) %>%
+  distinct()
+
+indsum_new.t <- indsum_new.t %>%
+  rename(
+    methanol = cum.emis1,
+    H2S = cum.emis2,
+    `4_Methylphenol` = cum.emis3,
+    acetic_acid = cum.emis4,
+    butanoic_acid = cum.emis5,
+    pentanoic_acid = cum.emis6,
+    propanoic_acid = cum.emis7,
+    acetladheyde = cum.emis8,
+    formic_acid = cum.emis9,
+    methanthiol = cum.emis10,
+    acetone = cum.emis11,
+    trimethylamine = cum.emis12,
+    dimethyl_sulfide = cum.emis13,
+    isopren = cum.emis14,
+    butanone = cum.emis15,
+    butandion = cum.emis16,
+    phenol = cum.emis17,
+    `4_ethyl_phenol` = cum.emis18,
+    methyl_indole = cum.emis19
+  )
+
+# Convert data to long format
+indsum_long.t <- indsum_new.t %>%
+  pivot_longer(
+    cols = -c(valve, treatment, group, elapsed.time),  # Select all columns except valve & treatment
+    names_to = "VOC", 
+    values_to = "emis"
+  )
+
+# Apply factor ordering
+indsum_long.t <- indsum_long.t %>%
+  mutate(
+    VOC = factor(VOC, levels = desired_order),
+    category = recode(VOC, !!!category)  # Assign group categories
+  )
+
+# Plot cumulative emissions for each treatment across all cum.emis columns
+cumsum_plot <- ggplot(indsum_long.t, aes(x = treatment, y = emis, color = treatment)) +  
+  geom_point(size = 2, alpha = 0.7) +  
+  geom_boxplot(aes(x = treatment, y = emis, color = treatment), 
+               show.legend = FALSE) +  
+  facet_wrap(~VOC, scales = "free_y") +  # Create separate plots for each cum.emis column
+  theme_bw() +
+  labs(
+    title = "Cumulative Emissions by Treatment",  
+    x = "Treatment",  
+    y = "Cumulative Emission Value"
+  ) + 
+  scale_x_discrete(labels = c(
+    'Mp' = 'Machine plot',
+    '0-bp' = 'No acid',
+    '1.5' = 'Low acid',
+    '2.9' = 'Medium acid',
+    'bkg' = 'Background',
+    '5.7' = 'High acid'
+  )) +  
+  theme(
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    strip.text = element_text(size = 10),  # Adjust facet label size
+    legend.title = element_blank(),                     
+    legend.position = "right",                          
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  ); cumsum_plot
+
+#------Plot cumulative cumsum--------
+# Ensure the treatment variable is a factor with the correct levels
+indsum_long.t$treatment <- factor(indsum_long.t$treatment, levels = c('Mp', '0-bp', '1.5', '2.9', 'bkg', '5.7'))
+
+
+indsum_mean.t <- indsum_long.t %>%
+  group_by(elapsed.time, treatment, VOC, category, group) %>%
+  summarise(mean_emis = mean(emis, na.rm = TRUE), .groups = "drop")
+
+indsum_cat.t <- indsum_mean.t %>%
+  group_by(treatment, category) %>%
+  summarise(mean_emis = sum(mean_emis, na.rm = TRUE), .groups = "drop")
+
+# Define a named vector for facet labels
+facet_labels <- c(
+  'Mp' = 'Machine plot',
+  '0-bp' = 'No acid',
+  '1.5' = 'Low acid', 
+  '2.9' = 'Medium acid',
+  'bkg' = 'Background',
+  '5.7' = 'High acid'
+)
+
+# Create the bar plot with facet_wrap
+ggplot(indsum_cat.t, aes(x = category, y = mean_emis, fill = category)) +
+  geom_bar(stat = "identity", position = "dodge") +  # Create bar plot
+  facet_wrap(~treatment, labeller = as_labeller(facet_labels)) +  # Facet by treatment
+  scale_fill_manual(values = custom_colors) +  # Apply custom colors
+  labs(
+    y = "Mean Emission",  # Label for y-axis
+    fill = "Category"
+  ) +
+  theme_minimal() +  # Clean theme
+  theme(
+    axis.text.x = element_blank(),  # Remove y-axis labels
+    axis.title.x = element_blank(),  # Remove y-axis title
+    strip.text = element_text(size = 12, face = "bold")  # Format facet labels
+  )

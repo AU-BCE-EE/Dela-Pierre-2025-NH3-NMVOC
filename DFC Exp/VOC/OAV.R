@@ -392,90 +392,142 @@ dat <- dat %>%
 #Rename vocs
 dat <- dat %>%
   rename(
-    Methanol = voc_flux1,
-    `Hydrogen sulfide` = voc_flux2,
-    `4-Methylphenol` = voc_flux3,
-    `Acetic acid` = voc_flux4,
-    `Butanoic acid` = voc_flux5,
-    `Pentanoic acid` = voc_flux6,
-    `Propanoic acid` = voc_flux7,
-    Acetaldehyde = voc_flux8,
-    `Formic acid` = voc_flux9,
-    Methanethiol = voc_flux10,
-    Acetone = voc_flux11,
-    Trimethylamine = voc_flux12,
-    `Dimethyl sulfide` = voc_flux13,
-    Isoprene = voc_flux14,
-    Butanone = voc_flux15,
-    Butanedione = voc_flux16,
-    Phenol = voc_flux17,
-    `4-ethyl phenol` = voc_flux18,
-    `Methyl indole` = voc_flux19
+    methanol = voc_flux1,
+    H2S = voc_flux2,
+    `4_Methylphenol` = voc_flux3,
+    acetic_acid = voc_flux4,
+    butanoic_acid = voc_flux5,
+    pentanoic_acid = voc_flux6,
+    propanoic_acid = voc_flux7,
+    acetladheyde = voc_flux8,
+    formic_acid = voc_flux9,
+    methanthiol = voc_flux10,
+    acetone = voc_flux11,
+    trimethylamine = voc_flux12,
+    dimethyl_sulfide = voc_flux13,
+    isopren = voc_flux14,
+    butanone = voc_flux15,
+    butandion = voc_flux16,
+    phenol = voc_flux17,
+    `4_ethyl_phenol` = voc_flux18,
+    methyl_indole = voc_flux19
   )
 
 
 # Define the groups for each VOC
 voc_groups <- c(
-  `Acetic acid` = "Carboxylic Acids",
-  `Butanoic acid` = "Carboxylic Acids",
-  `Pentanoic acid` = "Carboxylic Acids",
-  `Propanoic acid` = "Carboxylic Acids",
-  `Formic acid` = "Carboxylic Acids",
-  `Methyl indole` = "Indole",
-  `4-Methylphenol` = "Phenols",
-  Phenol = "Phenols",
-  `4-ethyl phenol` = "Phenols",
-  `Hydrogen sulfide` = "Volatile Sulfur Compounds (VSC)",
-  Methanethiol = "Volatile Sulfur Compounds (VSC)",
-  `Dimethyl sulfide` = "Volatile Sulfur Compounds (VSC)",
-  Methanol = "Other",
-  Acetaldehyde = "Other",
-  Acetone = "Other",
-  Trimethylamine = "Other",
-  Isoprene = "Other",
-  Butanone = "Other",
-  Butanedione = "Other"
+  acetic_acid = "Carboxylic Acids",
+  butanoic_acid = "Carboxylic Acids",
+  pentanoic_acid = "Carboxylic Acids",
+  propanoic_acid = "Carboxylic Acids",
+  formic_acid = "Carboxylic Acids",
+  methyl_indole = "Indole",
+  `4_Methylphenol` = "Phenols",
+  phenol = "Phenols",
+  `4_ethyl_phenol` = "Phenols",
+  H2S = "Volatile Sulfur Compounds (VSC)",
+  methanthiol = "Volatile Sulfur Compounds (VSC)",
+  dimethyl_sulfide = "Volatile Sulfur Compounds (VSC)",
+  methanol = "Other",
+  acetladheyde = "Other",
+  acetone = "Other",
+  trimethylamine = "Other",
+  isopren = "Other",
+  butanone = "Other",
+  benzen = "Other",
+  butandion = "Other"
 )
-#write.csv(dat, file = "Voc flux.csv", row.names = T )
+
 # Convert data to long format
 dat_long <- dat %>%
   pivot_longer(
-    cols = c(Methanol:`Hydrogen sulfide`, `4-Methylphenol`:`Methyl indole`), 
+    cols = c(methanol:H2S, `4_Methylphenol`:methyl_indole), 
     names_to = "VOC", 
     values_to = "Flux"
   )
-desired_order <- c("Acetic acid", "Acetaldehyde", "Acetone", "Butanedione", "Butanoic acid", 
-                   "Butanone", "Dimethyl sulfide", "Formic acid", "Hydrogen sulfide", "Isoprene", 
-                   "Methanol", "Methanethiol", "Methyl indole", "Pentanoic acid", 
-                   "Phenol", "Propanoic acid", "Trimethylamine", "4-ethyl phenol", 
-                   "4-Methylphenol")
+desired_order <- c("acetic_acid", "acetladheyde", "acetone", "butandion", "butanoic_acid", 
+                   "butanone", "dimethyl_sulfide", "formic_acid", "H2S", "isopren", 
+                   "methanol", "methanethiol", "methyl_indole", "pentanoic_acid", 
+                   "phenol", "propanoic_acid", "trimethylamine", "4_ethyl_phenol", 
+                   "4_Methylphenol")
 
-dat_long$VOC<- factor(dat_long$VOC, levels = desired_order)
-# Create the plot
-treatment_labels <- c(
-  'Mp' = 'Machine plot',
-  '0-bp' = 'No acid',
-  '1.5' = 'Low acid',
-  '2.9' = 'Medium acid',
-  'bkg' = 'Background',
-  '5.7' = 'High acid'
-)
+####################################################################
+####################################################################
+####################################################################
+OTV <- read_excel("/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/VOC_OTV.xlsx")
+OTV <- OTV %>%
+  rename(
+    methanol = `Methanol`,
+    H2S = `Hydrogen sulfide`,
+    `4_Methylphenol` = `4-methylphenol`,
+    acetic_acid = `Acetic acid`,
+    butanoic_acid = `Butanoic acid`,
+    pentanoic_acid = `Pentanoic acid`,
+    propanoic_acid = `Propionic acid`,
+    acetladheyde = `Acetaldehyd`,  
+    formic_acid = `Formic acid`,
+    methanthiol = `Methanthiol`, 
+    acetone = `Acetone`,
+    trimethylamine = `Trimethylamine`,
+    dimethyl_sulfide = `Dimethyl sulfide`,
+    isopren = `Isopren`,  # Corrected typo here
+    butanone = `2-butanone`,
+    butandion = `2,3-butandion`,  # Corrected typo here
+    phenol = `Phenol`,
+    `4_ethyl_phenol` = `4-ethylphenol`,
+    methyl_indole = `3-methylindole`
+  )
+
+# Convert relevant columns in OTV to numeric (excluding the first row and the `compund` column)
+OTV_numeric <- OTV %>%
+  select(-compund) %>%  # Exclude the non-numeric column
+  mutate(across(everything(), as.numeric))
+
+# Ensure bg.flux and OTV_numeric have the same column names and order
+common_columns <- intersect(names(dat), names(OTV_numeric))
+dat_common <- dat[common_columns]
+OTV_numeric <- OTV_numeric[common_columns]
+
+# Calculate OAV for each VOC
+OAV <- as.data.frame(mapply(`/`, dat_common, OTV_numeric))
+
+# Add treatment, group, and elapsed.time columns from bg.flux to OAV
+required_columns <- c("treatment", "group", "elapsed.time", "valve")
+if (all(required_columns %in% names(dat))) {
+  OAV <- cbind(dat[, required_columns], OAV)
+} else {
+  stop("Columns 'treatment', 'group', 'elapsed.time', and/or 'valve' do not exist in bg.flux")
+}
+
+# Display the first few rows of the resulting dataframe
+head(OAV)
+
+oav_long <- OAV %>%
+  pivot_longer(
+    cols = c(acetic_acid, acetladheyde, acetone, butandion, butanoic_acid, 
+             butanone, dimethyl_sulfide, formic_acid, H2S, isopren, 
+             methanol, methanthiol, methyl_indole, pentanoic_acid, 
+             phenol, propanoic_acid, trimethylamine, `4_ethyl_phenol`, 
+             `4_Methylphenol`),  # Correct backticks
+    names_to = "compound",
+    values_to = "value"
+  )
 
 treatment_colors <- c(
-  "0-bp" = "#4e79a7",
-  "1.5" = "#f28e2b",
-  "2.9" = "#e15759",
-  "2.7" = "#76b7b2",
-  "Mp" = "#59a14f"
+  "No acid" = "#4e79a7",
+  "Low acid" = "#f28e2b",
+  "Medium acid" = "#e15759",
+  "High acid" = "#76b7b2",
+  "Machine plot" = "#59a14f"
 )
 
-vocplot <- ggplot(dat_long, aes(x = elapsed.time, y = Flux, colour = treatment)) +  # Map to treatment instead of group
+OAV <- ggplot(oav_long, aes(x = elapsed.time, y = value, colour = group)) +  # Map to treatment instead of group
   geom_point(size = 0.4) +  # Adjust point size
   geom_line(aes(group = valve), linewidth = 0.5) +  
-  facet_wrap(~ VOC, scales = "free_y") + 
+  facet_wrap(~ compound, scales = "free_y") + 
   labs(
     x = "Time after slurry application (hours)", 
-    y = expression(Mass ~ emission ~ (mg ~ m^{-2} ~ min^{-1}))
+    y = "OAV"
   ) +
   scale_color_manual(values = treatment_colors) +  # Apply custom colors
   theme_minimal(base_size = 10) +  # Set base font size for readability
@@ -485,26 +537,26 @@ vocplot <- ggplot(dat_long, aes(x = elapsed.time, y = Flux, colour = treatment))
     legend.text = element_text(size = 10, face = "bold"),  # Legend text size
     legend.position = "bottom",  # Move legend below the plot
     plot.title = element_text()  # Center plot title
-  );vocplot
-#ggsave ("/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Adjusted/DFC VOC Figures/VOC mass emission.png", 
-plot = vocplot,
-width = 12, 
-height = 10, 
-dpi = 300,
-bg = "white")
+  );OAV
+#ggsave ("/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Adjusted/DFC VOC Figures/OAV.png", 
+       plot = OAV,
+       width = 12, 
+       height = 10, 
+       dpi = 300,
+       bg = "white")
+
 ####################################################################
 # Ensure the treatment variable is a factor with the correct levels
-dat_long$treatment <- factor(dat_long$treatment, levels = c('Mp', '0-bp', '1.5', '2.9', 'bkg', '5.7'))
+oav_long$treatment <- factor(oav_long$treatment, levels = c('Mp', '0-bp', '1.5', '2.9', 'bkg', '5.7'))
 # Add the group information to the long data frame
-dat_long <- dat_long %>%
-  mutate(Group = factor(voc_groups[VOC], levels = c("Carboxylic Acids", "Indole", "Phenols", "Volatile Sulfur Compounds (VSC)", "Other")))
+oav_long <- oav_long %>%
+  mutate(Group = factor(voc_groups[compound], levels = c("Carboxylic Acids", "Indole", "Phenols", "Volatile Sulfur Compounds (VSC)", "Other")))
 
 # Aggregate data for all treatments and groups
-sum.voc <- dat_long %>%
+sum.oav <- oav_long %>%
   group_by(elapsed.time, treatment, Group) %>%
-  summarize(Sum_Flux = sum(Flux, na.rm = TRUE), .groups = 'drop')
+  summarize(Sum_Flux = sum(value, na.rm = TRUE), .groups = 'drop')
 
-# Define color scheme
 custom_colors <- c(
   "Carboxylic Acids" = "#4e79a7",
   "Volatile Sulfur Compounds (VSC)" = "#f28e2b",
@@ -524,12 +576,12 @@ facet_labels <- c(
 )
 
 # Generate the faceted plot with the corrected custom colors and facet labels
-vocflux <- ggplot(sum.voc, aes(x = elapsed.time, y = Sum_Flux, fill = Group)) +
+oav <- ggplot(sum.oav, aes(x = elapsed.time, y = Sum_Flux, fill = Group)) +
   geom_area(alpha = 0.8, position = "stack", color = "black", linewidth = 0.2) +  # Black outline
   scale_fill_manual(values = custom_colors) +  # Use custom colors
   labs(
     x = "Time after slurry application (hours)",
-    y = expression(Mass ~ emission ~ (mg ~ m^{-2} ~ min^{-1}))
+    y = "OAV"
   ) + 
   facet_wrap(~ treatment, scales = "fixed", ncol = 3, labeller = as_labeller(facet_labels)) +  # Flexible grid layout with custom labels
   theme_minimal(base_size = 10) +  # Increase base font size for larger elements
@@ -565,15 +617,12 @@ vocflux <- ggplot(sum.voc, aes(x = elapsed.time, y = Sum_Flux, fill = Group)) +
   ) +
   guides(
     fill = guide_legend(nrow = 1)  # Arrange legend in a single row
-  ); vocflux
-#ggsave ("/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Adjusted/Figure/voc flux neg set zero group.png", plot = vocflux)
+  ); oav
 
-####################################################################
-####################################################################
-####################################################################
+######################################################################
 #---- Hourly %----------------
 alpha_value <- 0.6
-hourly_data <- sum.voc %>%
+hourly_data <- sum.oav %>%
   mutate(
     # Ensure elapsed time is rounded to the nearest multiple of 5
     elapsed.time = floor(elapsed.time / 10) * 10,
@@ -604,7 +653,7 @@ facet_labels <- c(
 # Faceted plot for each treatment
 # Faceted plot for each treatment with adjusted x-axis labels
 Hourly <- ggplot(hourly_data, 
-                     aes(x = elapsed.time, y = Percentage, fill = Group)) +
+                 aes(x = elapsed.time, y = Percentage, fill = Group)) +
   geom_bar(position = "stack",
            stat = "identity",
            width = 8,  # Reduced bar width
@@ -620,7 +669,7 @@ Hourly <- ggplot(hourly_data,
   scale_fill_manual(values = custom_colors) +  
   labs(
     x = "Time after slurry application (hours)",
-    y = "Mass emission (%)"
+    y = "OAV (%)"
   ) +
   facet_wrap(~ treatment, scales = "fixed", ncol = 3, labeller = as_labeller(facet_labels)) +
   theme_minimal(base_size = 5) +
@@ -650,7 +699,7 @@ Hourly <- ggplot(hourly_data,
 
 library(cowplot)
 # Modify vocflux: Remove x-axis elements and legend
-vocflux <- vocflux +
+oav <- oav +
   theme(
     legend.position = "none",     # Remove legend
     axis.title.x = element_blank(),  # Remove x-axis title
@@ -659,22 +708,21 @@ vocflux <- vocflux +
   )
 # Combine plots
 combined_plot <- plot_grid(
-  vocflux, Hourly,
+  oav, Hourly,
   ncol = 1,
   align = "v",
   axis = "lr",
   rel_heights = c(0.6, 0.4)
 );combined_plot
-#ggsave ("/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Adjusted/DFC VOC Figures/VOC mass emission by category.png", 
-        plot = combined_plot,
-        width = 12, 
-        height = 10, 
-        dpi = 300,
-        bg = "white")
 
-####################################################################
-####################################################################
-####################################################################
+
+#ggsave ("/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Adjusted/DFC VOC Figures/OAV by Category.png", 
+#        plot = combined_plot,
+#        width = 12, 
+#        height = 10, 
+#        dpi = 300,
+#        bg = "white")
+
 #---- Cummulative by mintegrate----------------
 
 cum.dat <- dat  
@@ -827,12 +875,170 @@ cumsum_plot <- ggplot(indsum_long, aes(x = treatment, y = emis, color = treatmen
     plot.title = element_blank()
   );cumsum_plot
 
-#ggsave("/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Adjusted/DFC VOC Figures/Cumulative voc.png", 
-       plot = cumsum_plot, 
-       width = 12, 
-       height = 10, 
-       dpi = 300, 
-       bg = "white")
+#ggsave ("/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Adjusted/DFC VOC Figures/Cumulative OAV.png", 
+        plot = cumsum_plot,
+        width = 12, 
+        height = 10, 
+        dpi = 300,
+        bg = "white")
+
+####################################################################
+####################################################################
+####################################################################
+#---- Cummulative by mintegrate----------------
+
+cum.dat <- OAV  
+names(cum.dat)[5:23] <- paste0("voc", 1:19)
+# Define the VOC column names
+voc_cols <- paste0("voc", 1:19)
+
+# Calculatedate.time# Calculate cumulative emissions using mintegrate function 
+source("Functions/mintegrate.R")
+
+for (i in seq_along(voc_cols)) {
+  new_col <- paste0("cum.treat", i)
+  cat("Processing VOC", i, "(", voc_cols[i], ")\n")
+  cum.dat[[new_col]] <- mintegrate(cum.dat$elapsed.time * 60, 
+                                   cum.dat[[voc_cols[i]]], 
+                                   by = cum.dat$valve, method = 'trap')
+}
+
+cum.dat <- cum.dat [, -c(5:23)]
+
+#Cumulative emissions by treatment from mintegrate function
+cum.dat <- cum.dat %>%
+  rename_with(~paste0("cum.emis", seq_along(.)), starts_with("cum.treat")) %>%
+  group_by(treatment)
+
+#Filter the data to get the last time point for each valve-treatment group
+dat_last <- cum.dat %>%
+  group_by(valve, treatment) %>%
+  filter(row_number() == n()) %>%  
+  ungroup()
+
+# Create a summary dataset for plotting (one point per treatment group)
+indsum <- dat_last %>%
+  select(valve, treatment, elapsed.time, starts_with("cum.emis")) %>%
+  distinct()
+
+# Summarize/mean cumulative emissions by treatment
+cumsum <- aggregate(. ~ treatment, data = indsum, FUN = function(x) mean(x, na.rm = TRUE))
+
+# Rename columns
+# Create a summary dataset for plotting (one point per treatment group)
+indsum_new <- dat_last %>%
+  select(valve, treatment, elapsed.time, group, starts_with("cum.emis")) %>%
+  distinct()
+
+indsum_new <- indsum_new %>%
+  rename(
+    methanol = cum.emis1,
+    H2S = cum.emis2,
+    `4_Methylphenol` = cum.emis3,
+    acetic_acid = cum.emis4,
+    butanoic_acid = cum.emis5,
+    pentanoic_acid = cum.emis6,
+    propanoic_acid = cum.emis7,
+    acetladheyde = cum.emis8,
+    formic_acid = cum.emis9,
+    methanthiol = cum.emis10,
+    acetone = cum.emis11,
+    trimethylamine = cum.emis12,
+    dimethyl_sulfide = cum.emis13,
+    isopren = cum.emis14,
+    butanone = cum.emis15,
+    butandion = cum.emis16,
+    phenol = cum.emis17,
+    `4_ethyl_phenol` = cum.emis18,
+    methyl_indole = cum.emis19
+  )
+
+# Convert data to long format
+indsum_long <- indsum_new %>%
+  pivot_longer(
+    cols = -c(valve, treatment, group, elapsed.time),  # Select all columns except valve & treatment
+    names_to = "VOC", 
+    values_to = "emis"
+  )
+
+# Fix whitespace issue in desired_order
+desired_order <- c("acetic_acid", "acetladheyde", "acetone", "butandion", "butanoic_acid", 
+                   "butanone", "dimethyl_sulfide", "formic_acid", "H2S", "isopren", 
+                   "methanol", "methanthiol", "methyl_indole", "pentanoic_acid", 
+                   "phenol", "propanoic_acid", "trimethylamine", "4_ethyl_phenol", 
+                   "4_Methylphenol")
+
+# Define VOC groups
+category<- c(
+  acetic_acid = "Carboxylic Acids",
+  butanoic_acid = "Carboxylic Acids",
+  pentanoic_acid = "Carboxylic Acids",
+  propanoic_acid = "Carboxylic Acids",
+  formic_acid = "Carboxylic Acids",
+  methyl_indole = "Indole",
+  `4_Methylphenol` = "Phenols",
+  phenol = "Phenols",
+  `4_ethyl_phenol` = "Phenols",
+  H2S = "Volatile Sulfur Compounds (VSC)",
+  methanthiol = "Volatile Sulfur Compounds (VSC)",
+  dimethyl_sulfide = "Volatile Sulfur Compounds (VSC)",
+  methanol = "Other",
+  acetladheyde = "Other",
+  acetone = "Other",
+  trimethylamine = "Other",
+  isopren = "Other",
+  butanone = "Other",
+  butandion = "Other"
+)
+
+# Define color scheme
+treatment_colors <- c(
+  "0-bp" = "#4e79a7",
+  "1.5" = "#f28e2b",
+  "2.9" = "#e15759",
+  "2.7" = "#76b7b2",
+  "Mp" = "#59a14f"
+)
+
+# Apply factor ordering
+indsum_long <- indsum_long %>%
+  mutate(
+    VOC = factor(VOC, levels = desired_order),
+    category = recode(VOC, !!!category)  # Assign group categories
+  )
+
+# Plot cumulative emissions for each treatment across all cum.emis columns
+cumsum_plot <- ggplot(indsum_long, aes(x = treatment, y = emis, color = treatment)) +  
+  geom_point(size = 2, alpha = 0.6) +  
+  geom_boxplot(aes(fill = treatment), color = "gray20", show.legend = FALSE) +  # Black outline for boxplot
+  scale_fill_manual(values = treatment_colors) +  # Fill color for boxplot
+  scale_color_manual(values = treatment_colors) +  # Color for points
+  facet_wrap(~VOC, scales = "free_y") +  
+  theme_bw() +
+  labs(
+    title = "Cumulative Emissions by Treatment",  
+    x = "Treatment",  
+    y = "OAV"
+  ) + 
+  scale_x_discrete(labels = c(
+    'Mp' = 'Machine plot',
+    '0-bp' = 'No acid',
+    '1.5' = 'Low acid',
+    '2.9' = 'Medium acid',
+    'bkg' = 'Background',
+    '5.7' = 'High acid'
+  )) +  
+  theme(
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 12),
+    strip.text = element_text(size = 10),  
+    legend.position = "none",
+    axis.text.x = element_text(),
+    plot.title = element_blank()
+  );cumsum_plot
+
+#ggsave ("/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Adjusted/Figure/cumulative neg set 0 treatments.png", plot = cumsum_plot)
+
 
 #################################################
 #------Plot category mintegrate--------
@@ -869,25 +1075,25 @@ grouped <- ggplot(indsum_cat, aes(x = category, y = mean_emis, fill = category))
   scale_fill_manual(values = custom_colors) + 
   labs(
     y = expression(Mass ~ emission ~ (mg ~ m^{-2})), 
-    fill = "VOC Category"
+    fill = NULL  # Remove the label of the legend line
   ) +
   theme_minimal(base_size = 15) +  
   theme(
-    axis.title.y = element_text(size = 14),
+    axis.title.y = element_text(size = 12),
     axis.text.x = element_blank(),
-    strip.text = element_text(size = 12, face = "bold"),
-    legend.position = "top",  # Position the legend at the top
+    strip.text = element_text(size = 10, face = "bold"),
+    legend.title = element_blank(),  # Remove legend title
+    legend.text = element_text(size = 10, face = "bold"),
+    legend.position = "bottom",  # Position the legend at the bottom
     panel.grid.major = element_line(color = "gray80", size = 0.5),  
     panel.grid.minor = element_line(color = "gray90", size = 0.25),  
-    legend.title = element_text(size = 14, face = "bold"),  #
-    legend.text = element_text(size = 12),  # Format legend text
     plot.title = element_text(size = 16, face = "bold", hjust = 0.5) 
-  )+
+  ) +
   geom_text(aes(label = round(mean_emis, 1)), position = position_dodge(width = 0.7), vjust = -0.5, size = 3.5);grouped
 
-#ggsave("/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Adjusted/DFC VOC Figures/Cumulative voc by category .png", 
-       plot = cumsum_plot, 
-       width = 12, 
-       height = 10, 
-       dpi = 300, 
-       bg = "white")
+#ggsave ("/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Adjusted/DFC VOC Figures/Cumulative OAV by category.png", 
+        plot = grouped,
+        width = 12, 
+        height = 10, 
+        dpi = 300,
+        bg = "white")
