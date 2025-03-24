@@ -891,3 +891,33 @@ grouped <- ggplot(indsum_cat, aes(x = category, y = mean_emis, fill = category))
        height = 10, 
        dpi = 300, 
        bg = "white")
+######################################################################################################
+######################################################################################################
+###############NMVOC/NH3 Ratio#######################################################################
+
+
+cum.ratio <- cum.dat
+# Define the columns for cumulative emissions
+cum_cols <- paste0("cum.emis", 1:19)
+
+# Sum cumulative emissions for each treatment
+cum.ratio <- cum.dat %>%
+  group_by(treatment) %>%
+  summarise(across(all_of(cum_cols), sum, na.rm = TRUE))
+cum.ratio <- cum.ratio %>%
+  group_by(treatment) %>%
+  summarise(NMVOC = sum(across(all_of(cum_cols)), na.rm = TRUE))
+
+NH3.cum <- read.csv('/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Data for Flavia/NH3 enumulative.csv')
+NH3.cum <- aggregate(NH3.cum$cum.emis, 
+                     by = list(treatment = NH3.cum$treatment), 
+                     FUN = function(x) sum(x, na.rm = TRUE))  
+
+# Rename the result column
+colnames(NH3.cum)[2] <- "NH3.cum"
+
+cum.ratio <- left_join(cum.ratio, NH3.cum, by = "treatment")
+cum.ratio <- cum.ratio %>%
+  mutate(NMVOC_NH3_ratio = NMVOC / NH3.cum)
+
+#write.csv(cum.ratio, file = '/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Data for Flavia/NMVOC_NH3 ratio.csv', row.names = FALSE)

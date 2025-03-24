@@ -201,79 +201,9 @@ dat$n <- atm.con / (g.con * dat$air.temp.K) * dat$NH3_corr * 10^-9  # mol * L^-1
 #Calculation of flux, from mol * L^-1 to mg.NH3 * min^-1 * m^-2#
 dat$NH3.flux <- ((dat$n * M.N * dat$air.flow) / dat$dfc.area) * 1000
 
-dat <- dat %>%
-  filter(elapsed.time >= 0 & elapsed.time <= 124)
 ################################################################################################################################
 ####################################################################################################################
-################################################################################################################################
 
-####bLs Flux###############################################################################################################
-# Read BLS data
-bls <- read.csv('/Users/AU775281/Documents/GitHub/Flavia-Project/DFC Exp/NH3_fluxes_bLS.csv')
-
-# Summarize BLS data
-bls_summary <- aggregate(
-  Flux_mg_min ~ hours, 
-  data = bls, 
-  FUN = function(x) c(mean = mean(x, na.rm = TRUE), sd = sd(x, na.rm = TRUE))
-)
-
-# Convert list columns to separate columns
-bls_summary <- do.call(data.frame, bls_summary)
-colnames(bls_summary)[2:3] <- c("mean_flux", "sd_flux")  # Rename columns
-head(bls)
-
-# Define color for BLS data
-bls_color <- "black" 
-
-# Plot with filled ribbon
-Fluxes <- ggplot(dat_summary, aes(x = elapsed.time, y = mean_flux, color = group, fill = group)) +
-  
-  # Main data ribbon and line
-  geom_ribbon(aes(ymin = mean_flux - sd_flux, ymax = mean_flux + sd_flux), alpha = 0.3, color = NA) +
-  geom_line(size = 1) +
-  
-  # BLS data ribbon and line
-  geom_ribbon(data = bls_summary, aes(ymin = mean_flux - sd_flux, ymax = mean_flux + sd_flux), 
-              fill = bls_color, alpha = 0.2, inherit.aes = FALSE) +
-  geom_line(data = bls_summary, aes(x = hours, y = mean_flux), 
-            color = bls_color, size = 1, inherit.aes = FALSE) +
-  
-  # Custom colors
-  scale_color_manual(values = category_colors) +
-  scale_fill_manual(values = category_colors) +
-  
-  # X-axis settings with secondary axis
-  scale_x_continuous(
-    breaks = seq(0, 290, by = 25),
-    sec.axis = sec_axis(~ ., name = "BLS Time (hours)")  # Adjust transformation if needed
-  ) +
-  
-  # Axis labels and title
-  labs(
-    y = expression(paste(NH[3], " Flux (mg NH"[3]-N, " * m"^-2, " * min"^-1, ")")),
-    x = "Time after slurry application (hours)",
-    color = "Treatment",
-    fill = "Treatment"
-  ) +
-  
-  # Theme settings
-  theme_bw() +
-  theme(
-    axis.title = element_text(size = 14),       
-    axis.text = element_text(size = 12),      
-    plot.title = element_text(size = 16, hjust = 0.5),
-    strip.text = element_text(size = 14),       
-    legend.text = element_text(size = 12),      
-    legend.title = element_blank(),             
-    legend.position = "bottom"        
-  ) +
-  
-  guides(color = guide_legend(nrow = 1))
-################################################################################################################################
-########################################################################################################################
-
-###############################################################################################################################
 #NH3 flux plotting#
 # Plot NH3 Flux Over Time by Treatment
 
@@ -294,6 +224,10 @@ dat_summary <- aggregate(
   data = dat, 
   FUN = function(x) c(mean = mean(x, na.rm = TRUE), sd = sd(x, na.rm = TRUE))
 )
+
+
+dat_summary <- dat_summary %>%
+  filter(elapsed.time >= 0 & elapsed.time <= 120)
 
 # Convert the list columns to separate columns
 dat_summary <- do.call(data.frame, dat_summary)
@@ -335,6 +269,10 @@ height = 10,
 dpi = 300, 
 bg = "white")
 
+################################################################################################################################
+#######Cmulative by mintegrate#############################################################################################################
+
+dat <- dat %>% filter(elapsed.time >= 0 & elapsed.time <= 120)
 # Calculate cumulative emissions using mintegrate function 
 source("Functions/mintegrate.R")
 dat$cum.treat <- mintegrate((dat$elapsed.time*60), dat$NH3.flux, by = dat$valve, method = 'trap') #(NH3-N mg m^-2)
@@ -414,8 +352,7 @@ Tan <- ggplot(dat_tan_summary, aes(x = elapsed.time, y = mean_flux, color = grou
   
   guides(color = guide_legend(nrow = 1)); Tan
 
-# Define your custom colors
-indsum.tan$treatment <- factor(indsum.tan$treatment, levels = names(custom_colors))
+
 
 custom_colors <- c(
   "0-bp" = "#4e79a7",  # No acid
@@ -484,3 +421,92 @@ width = 12,
 height = 10, 
 dpi = 300, 
 bg = "white")
+
+################################################################################################################################
+###############################################################################################################################
+####bLs Flux###############################################################################################################
+# Read BLS data
+bls <- read.csv('/Users/AU775281/Documents/GitHub/Flavia-Project/DFC Exp/NH3_fluxes_bLS.csv')
+
+# Summarize BLS data
+bls_summary <- aggregate(
+  Flux_mg_min ~ hours, 
+  data = bls, 
+  FUN = function(x) c(mean = mean(x, na.rm = TRUE))
+)
+
+# Convert list columns to separate columns
+bls_summary <- do.call(data.frame, bls_summary)
+colnames(bls_summary)[1:2] <- c("elapsed.time", "mean_flux")  # Rename columns
+
+
+# Define color for BLS data
+bls_color <- "gray20" 
+
+# Plot with filled ribbon
+# Create the plot
+Fluxes <- ggplot(dat_summary, aes(x = elapsed.time, y = mean_flux, color = group, fill = group)) +
+  
+  # Add a ribbon for uncertainty in dat_summary
+  geom_ribbon(aes(ymin = mean_flux - sd_flux, ymax = mean_flux + sd_flux), alpha = 0.2, color = NA) +
+  
+  # Add a solid line plot for dat_summary
+  geom_line(size = 1) +
+  
+  # Add a separate dashed line for BLS summary with the correct linetype
+  geom_line(data = bls_summary, aes(x = elapsed.time, y = mean_flux, linetype = "bLS plot"), 
+            color = bls_color, size = 1, inherit.aes = FALSE) +
+  
+  # Custom colors
+  scale_color_manual(values = category_colors) +
+  scale_fill_manual(values = category_colors) +
+  
+  # Correct the scale for linetype, matching the "BLS Treatment" label
+  scale_linetype_manual(values = c("bLS plot" = "dashed")) +  # Define dashed style
+  
+  # X-axis settings
+  scale_x_continuous(
+    breaks = seq(0, 290, by = 25)
+  ) +
+  
+  # Single Y-axis for both datasets
+  scale_y_continuous(
+    name = expression(paste(NH[3], " Flux (mg NH"[3]-N, " * m"^-2, " * min"^-1, ")"))
+  ) +
+  
+  # Axis labels and title
+  labs(
+    x = "Time after slurry application (hours)",
+    color = "Treatment",
+    fill = "Treatment",
+    linetype = "Legend"
+  ) +
+  
+  # Theme settings
+  theme_bw() +
+  theme(
+    axis.title = element_text(size = 14),       
+    axis.text = element_text(size = 12),      
+    plot.title = element_text(size = 16, hjust = 0.5),
+    strip.text = element_text(size = 14),       
+    legend.text = element_text(size = 12),      
+    legend.title = element_blank(),             
+    legend.position = "bottom"
+  ) +
+  
+  # Adjust legend settings
+  guides(
+    color = guide_legend(nrow = 1),
+    linetype = guide_legend(nrow = 1)
+  );Fluxes
+
+ggsave("/Users/AU775281/Documents/GitHub/Flavia-Project/DFC Exp/VOC/DFC VOC Figures/NH3 flux.png", 
+plot = Fluxes, 
+width = 12, 
+height = 10, 
+dpi = 300, 
+bg = "white")
+
+################################################################################################################################
+########################################################################################################################
+
