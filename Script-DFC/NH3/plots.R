@@ -38,7 +38,7 @@ Fluxes <- ggplot(dat_summary, aes(x = elapsed.time, y = mean_flux, color = group
   
   # Add a separate dashed line for BLS
   geom_line(data = bls_summary, aes(x = elapsed.time, y = mean_flux, linetype = "bLS plot"), 
-            color = bls_color, size = 1, inherit.aes = FALSE) +
+            color = bls_color, linewidth = 1, inherit.aes = FALSE) +
   
   scale_color_manual(values = all_colors) +
   scale_fill_manual(values = all_colors) +
