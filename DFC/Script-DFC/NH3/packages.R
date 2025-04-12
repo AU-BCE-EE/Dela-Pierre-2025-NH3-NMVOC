@@ -8,6 +8,6 @@ library(tidyr)
 library(patchwork)
 
 # Save record of package versions
-sink('../NH3/logs.txt')
+sink('/Users/AU775281/Documents/GitHub/Dela-Pierre-2025-NH3-NMVOC/DFC/logs/logs-NH3.txt')
 print(sessionInfo())
 sink()

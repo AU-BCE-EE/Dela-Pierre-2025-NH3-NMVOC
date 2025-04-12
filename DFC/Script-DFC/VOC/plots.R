@@ -2,13 +2,6 @@
 #-----Plot prerequisite ------------
 ########################################################################################
 
-#Making order for plottiong
-desired_order <- c("Acetic acid", "Acetaldehyde", "Acetone", "Butanedione", "Butanoic acid", 
-                   "Butanone", "Dimethyl sulfide", "Formic acid", "Hydrogen sulfide", "Isoprene", 
-                   "Methanol", "Methanethiol", "Methyl indole", "Pentanoic acid", 
-                   "Phenol", "Propanoic acid", "Trimethylamine", "4-ethyl phenol", 
-                   "4-Methylphenol")
-
 #Assinging colors to treatments and groups
 all_colors <- c(
   # Treatment levels

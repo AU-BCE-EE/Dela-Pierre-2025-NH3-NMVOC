@@ -48,6 +48,23 @@ if (all(required_columns %in% names(voc_ppb))) {
 #Checking
 head(OAV)
 
+
+########################################################################################
+#----- Calculating SOAV ------------ 
+########################################################################################
+
+#Selecting data for SOAV calculation
+SOAV_columns <- colnames(OAV)[5:23]
+
+#For non-scientific number printing
+options(scipen = 999)
+
+#Calculating SOAV from VOC columns only
+OAV$SOAV <- rowSums(OAV[, SOAV_columns], na.rm = TRUE)
+
+#Separating SOAV from OAV
+SOAV <- OAV %>% select(-all_of(SOAV_columns))
+
 ########################################################################################
 #----- Setting data for plots ------------ 
 ########################################################################################
@@ -100,19 +117,12 @@ sum.oav <- oav_long %>%
   group_by(elapsed.time, treatment, Group) %>%
   summarize(Sum_Flux = sum(value, na.rm = TRUE), .groups = 'drop')
 
-########################################################################################
-#----- Calculating SOAV ------------ 
-########################################################################################
+#Making order for plottiong
+desired_order <- c("Acetic acid", "Acetaldehyde", "Acetone", "Butanedione", "Butanoic acid", 
+                   "Butanone", "Dimethyl sulfide", "Formic acid", "Hydrogen sulfide", "Isoprene", 
+                   "Methanol", "Methanethiol", "Methyl indole", "Pentanoic acid", 
+                   "Phenol", "Propanoic acid", "Trimethylamine", "4-ethyl phenol", 
+                   "4-Methylphenol")
+oav_long$compound<- factor(oav_long$compound, levels = desired_order)
 
-#Selecting data for SOAV calculation
-SOAV_columns <- colnames(OAV)[5:23]
-
-#For non-scientific number printing
-options(scipen = 999)
-
-#Calculating SOAV from VOC columns only
-OAV$SOAV <- rowSums(OAV[, SOAV_columns], na.rm = TRUE)
-
-#Separating SOAV from OAV
-SOAV <- OAV %>% select(-all_of(SOAV_columns))
 

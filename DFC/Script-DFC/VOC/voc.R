@@ -64,7 +64,7 @@ columns_to_delete <- c(
 
 # Remove the identified columns from the dat data frame
 dat <- dat %>% select(-all_of(columns_to_delete))
-dat <- dat[, -c(2, 4:29)]
+dat <- dat[, -c(2, 4:29, 32:38)]
 dat <- dat %>% 
   filter(elapsed.time >= 0 & elapsed.time <= 120)
 
@@ -92,19 +92,15 @@ dat <- dat %>%
     methyl_indole = voc_flux19
   )
 
-# Convert data to long format
-dat_long <- dat %>%
-  pivot_longer(
-    cols = c(methanol:H2S, `4_Methylphenol`:methyl_indole), 
-    names_to = "VOC", 
-    values_to = "Flux"
-  )
+########################################################################################
+#----- Calculating cumulative emissions ------------ 
+########################################################################################
 
 #Cumulative emissions#
 
 #creating new dataset for cumulative
 cum.voc <- dat  
-names(cum.voc)[12:30] <- paste0("voc", 1:19)
+names(cum.voc)[5:23] <- paste0("voc", 1:19)
 
 # Define the VOC column names
 voc_cols <- paste0("voc", 1:19)
@@ -119,7 +115,7 @@ for (i in seq_along(voc_cols)) {
 }
 
 #Removing unnecessary data
-cum.voc <- cum.voc [, -c(5:30)]
+cum.voc <- cum.voc [, -c(5:23)]
 
 #Renaming vocs
 cum.voc <- cum.voc %>%
@@ -143,4 +139,15 @@ cum.voc <- cum.voc %>%
     Phenol = cum.treat17,
     `4-ethyl phenol` = cum.treat18,
     `Methyl indole` = cum.treat19
+  )
+
+########################################################################################
+#----- Setting data for plots ------------ 
+########################################################################################
+# Convert data to long format
+dat_long <- dat %>%
+  pivot_longer(
+    cols = c(methanol:H2S, `4_Methylphenol`:methyl_indole), 
+    names_to = "VOC", 
+    values_to = "Flux"
   )
