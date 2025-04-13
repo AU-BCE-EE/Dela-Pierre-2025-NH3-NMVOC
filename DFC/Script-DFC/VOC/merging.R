@@ -19,6 +19,12 @@ voc$date.time <- as.POSIXct(voc$date.time, format = '%Y-%m-%d %H:%M', tz = "ETC/
 voc <- voc %>%
   mutate(adj.time = date.time - time.diff)
 
+voc <- voc %>%
+  mutate(
+    adj.time = (date.time - time.diff) + hours(1)
+  )
+
+
 # Converting to POSIXct in main dataset#
 dat$date.time <- as.POSIXct(dat$date.time, format = '%Y-%m-%d %H:%M', tz = "ETC/GMT-1")
 

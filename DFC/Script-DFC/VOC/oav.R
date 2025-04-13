@@ -24,7 +24,7 @@ voc_names <- c(
   "Methyl indole"
 )
 
-names(voc_ppb)[8:(8 + length(voc_names) - 1)] <- voc_names
+names(voc_ppb)[7:(7 + length(voc_names) - 1)] <- voc_names
 names(OTV)[2:20] <- voc_names
 
 
@@ -125,4 +125,7 @@ desired_order <- c("Acetic acid", "Acetaldehyde", "Acetone", "Butanedione", "But
                    "4-Methylphenol")
 oav_long$compound<- factor(oav_long$compound, levels = desired_order)
 
-
+########################################################################################
+#----- Setting to save as csv file ------------ 
+########################################################################################
+voc_ppb$picarro_time <- format(voc_ppb$picarro_time, "%Y-%m-%d %H:%M:%S")

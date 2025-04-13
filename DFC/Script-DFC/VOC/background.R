@@ -64,9 +64,12 @@ names(DFC.bg.end.summ)[2:20] <- paste0("voc.bg", 1:19)
 
 
 # Subset the data for the DFC outlet 
-DFC <- dat[dat$group %in% c('No acid', 'Low acid', 'Medium acid', 'High acid', 'Machine plot'), ]
-names(DFC)[7:25] <- paste0("voc.dfc", 1:19)
+DFC <- dat %>%
+  filter(group %in% c('No acid', 'Low acid', 'Medium acid', 'High acid', 'Machine plot'),
+         elapsed.time >= 0, elapsed.time <= 120)
 
+# Rename columns 7 to 25
+names(DFC)[7:25] <- paste0("voc.dfc", 1:19)
 
 #Convert to numeric
 DFC <- DFC %>%
@@ -100,10 +103,11 @@ dat <- rbind(DFC)
 
 #Checking and ordering
 str(dat)
-dat <- dat[order(dat$treatment), ]
 
 #Concentration in ppb
-voc_ppb <- dat %>% # Rename "Background" to "Original"
+voc_ppb <- dat %>%
   filter(elapsed.time >= 0 & elapsed.time <= 120) #For OTV calculation
-voc_ppb <- voc_ppb [, -c(2:21, 25:47)]
+voc_ppb <- voc_ppb [, -c(2:20, 23:25, 27:48)]
+names(voc_ppb)[c(2, 4)] <- c("picarro_time", "ptrms_time")
+
 

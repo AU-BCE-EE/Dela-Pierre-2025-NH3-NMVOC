@@ -65,8 +65,6 @@ columns_to_delete <- c(
 # Remove the identified columns from the dat data frame
 dat <- dat %>% select(-all_of(columns_to_delete))
 dat <- dat[, -c(2, 4:29, 32:38)]
-dat <- dat %>% 
-  filter(elapsed.time >= 0 & elapsed.time <= 120)
 
 #Rename vocs
 dat <- dat %>%
