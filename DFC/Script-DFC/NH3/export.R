@@ -23,3 +23,4 @@ write.csv(DFC.bg, '/Users/AU775281/Documents/GitHub/Dela-Pierre-2025-NH3-NMVOC/D
 write.csv(DFC, '/Users/AU775281/Documents/GitHub/Dela-Pierre-2025-NH3-NMVOC/DFC/Data/output data/NH3/DFC data.csv', row.names = F)
 write.csv(dat, '/Users/AU775281/Documents/GitHub/Dela-Pierre-2025-NH3-NMVOC/DFC/Data/output data/NH3/NH3 flux.csv', row.names = F)
 write.csv(dat_tan, '/Users/AU775281/Documents/GitHub/Dela-Pierre-2025-NH3-NMVOC/DFC/Data/output data/NH3/TAN.csv', row.names = F)
+

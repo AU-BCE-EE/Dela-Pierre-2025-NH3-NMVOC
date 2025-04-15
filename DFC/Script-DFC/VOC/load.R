@@ -20,9 +20,10 @@ dat <- rbind(da)
 #----- Loading VOC data ------------
 ########################################################################################
 # Importing VOC data
-voc <- read.csv('/Users/AU775281/Documents/PhD/Flavia Experiment/DFC VOC/Adjusted/VOC Data/voc data.csv', fill = T, stringsAsFactors = F)
+voc <- read_xlsx('/Users/AU775281/Documents/GitHub/Dela-Pierre-2025-NH3-NMVOC/DFC/Data/input data/VOC Data/ptrms.xlsx')
 voc$date <- as.Date(voc$date.time, format = "%m/%d/%y %H:%M")
 voc$time <- format(as.POSIXct(voc$date.time, format = "%m/%d/%y %H:%M"), "%H:%M:%S")
+warnings()
 
 
 ########################################################################################

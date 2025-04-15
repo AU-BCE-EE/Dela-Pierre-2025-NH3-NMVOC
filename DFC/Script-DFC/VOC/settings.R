@@ -58,5 +58,9 @@ dat <- dat %>%
     voc19 = methyl_indole
   )
 
+dat <- dat %>%
+  group_by(group, valve, elapsed.time) %>%
+  slice(1) %>%
+  ungroup()
 ########################################################################################
 

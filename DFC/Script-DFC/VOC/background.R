@@ -47,6 +47,7 @@ DFC.bg.end$elapsed.time <- NULL
 DFC.bg.end$elapsed.time <- DFC.bg$elapsed.time
 
 #Converting the VOC columns to numeric#
+setDT(DFC.bg.end)
 DFC.bg.end[, (voc_columns) := lapply(.SD, as.numeric), .SDcols = voc_columns]
 
 #Mean for each elapsed time
@@ -69,7 +70,7 @@ DFC <- dat %>%
          elapsed.time >= 0, elapsed.time <= 120)
 
 # Rename columns 7 to 25
-names(DFC)[7:25] <- paste0("voc.dfc", 1:19)
+names(DFC)[6:24] <- paste0("voc.dfc", 1:19)
 
 #Convert to numeric
 DFC <- DFC %>%
@@ -107,7 +108,7 @@ str(dat)
 #Concentration in ppb
 voc_ppb <- dat %>%
   filter(elapsed.time >= 0 & elapsed.time <= 120) #For OTV calculation
-voc_ppb <- voc_ppb [, -c(2:20, 23:25, 27:48)]
-names(voc_ppb)[c(2, 4)] <- c("picarro_time", "ptrms_time")
+voc_ppb <- voc_ppb [, -c(2:21, 26:44)]
+
 
 

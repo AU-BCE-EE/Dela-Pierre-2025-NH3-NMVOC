@@ -34,7 +34,7 @@ bls_color <- "gray20"
 # Create the plot
 Fluxes <- ggplot(dat_summary, aes(x = elapsed.time, y = mean_flux, color = group, fill = group)) +
   geom_ribbon(aes(ymin = mean_flux - sd_flux, ymax = mean_flux + sd_flux), alpha = 0.2, color = NA) +
-  geom_line(size = 1) +
+  geom_line(linewidth = 1) +
   
   # Add a separate dashed line for BLS
   geom_line(data = bls_summary, aes(x = elapsed.time, y = mean_flux, linetype = "bLS plot"), 
@@ -48,7 +48,7 @@ Fluxes <- ggplot(dat_summary, aes(x = elapsed.time, y = mean_flux, color = group
     breaks = seq(0, 290, by = 25)
   ) +
   scale_y_continuous(
-    name = expression(paste(NH[3], " Flux (mg NH"[3]-N, " * m"^-2, " * min"^-1, ")"))
+    name = expression(paste(NH[3], " Flux (mg-N * ", m^-2, " * min"^-1, ")"))
   ) +
   
   # Axis labels and title
@@ -86,7 +86,7 @@ print(Fluxes)
 #Ploting Tan
 Tan <- ggplot(tan.plot.dat, aes(x = elapsed.time, y = mean, color = group, fill = group)) +
   geom_ribbon(aes(ymin = mean - sd, ymax = mean + sd), alpha = 0.3, color = NA) +  
-  geom_line(size = 1) +  # Mean flux line
+  geom_line(linewidth = 1) +  # Mean flux line
   geom_point(aes(x = elapsed.time, y = mean), size = 2, shape = 16, alpha = 0.7) +  
   scale_color_manual(values = all_colors) +  
   scale_fill_manual(values = all_colors) + 

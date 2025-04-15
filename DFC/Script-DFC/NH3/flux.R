@@ -111,3 +111,8 @@ indsum.tan <- dat_last %>%
 #Average TAN loss fraction for plotting#
 cumsum.tan <- aggregate(indsum.tan$tanloss, by = list(treatment = indsum.tan$treatment), FUN = function(x) mean(x, na.rm = TRUE))
 names(cumsum.tan)[2] <- "tanloss"
+
+
+
+
+

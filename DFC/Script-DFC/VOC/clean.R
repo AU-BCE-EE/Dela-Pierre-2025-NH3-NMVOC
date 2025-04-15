@@ -1,17 +1,75 @@
 ########################################################################################
-#----- Ordering data ------------
+#----- Calculating 30s average ------------
 ########################################################################################
+#Converting time for valve blocks#
+dat <- dat %>%
+  mutate(
+    time = as_hms(time),
+    valve_prev = lag(valve, default = first(valve)),
+    group_id = cumsum(valve != valve_prev)
+  )
 
-#Renaming the column MPVPosition to valve#
-names(dat)[names(dat) == "MPVPosition"]  <- "valve"
+#Calculating end times for each block#
+end_times <- dat %>%
+  group_by(group_id) %>%
+  summarise(
+    end_time = max(time),
+    .groups = "drop"
+  )
 
-#Cropping data and taking the last point of each measurement from each valve#
-dat <- filter(dat, !(dat$valve == lead(dat$valve)))
+#Joining end times and differentiating first cycle for sulfur compounds#
+dat <- dat %>%
+  left_join(end_times, by = "group_id") %>%  # Single join
+  group_by(valve) %>%
+  mutate(
+    is_first_cycle = (group_id == first(group_id))
+  ) %>%
+  ungroup()
 
-#Remove valve changing values from 1-19#
-dat <- dat[dat$valve == '1' | dat$valve == '2' | dat$valve == '3' | dat$valve == '4' | dat$valve == '5' | dat$valve == '6' | dat$valve == '7' | 
-             dat$valve == '8' | dat$valve == '9' | dat$valve == '10' | dat$valve == '11' | dat$valve == '12' | dat$valve == '13' | dat$valve == '14' |
-             dat$valve == '15' | dat$valve == '16' | dat$valve == '17' | dat$valve == '18' | dat$valve == '19', ]
+#Calculate last 30s averages for all compounds#
+mean_all <- dat %>%
+  group_by(group_id, valve) %>%
+  filter(as.numeric(time) >= (as.numeric(end_time) - 30)) %>% 
+  summarise(
+    time = max(time),
+    valve = first(valve),
+    across(6:26, ~mean(.x, na.rm = TRUE)),
+    .groups = "drop"
+  )
+
+#Calculate last 8 min averages for sulfur compounds#
+mean_sulfur <- dat %>%
+  group_by(group_id, valve) %>%
+  filter(is_first_cycle) %>%
+  summarise(
+    H2S_full = mean(H2S, na.rm = TRUE),
+    methanthiol_full = mean(methanthiol, na.rm = TRUE),
+    dimethyl_sulfide_full = mean(dimethyl_sulfide, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+#Overwriting sulfur compound mean for 1st cycle#
+combined_mean <- mean_all %>%
+  left_join(mean_sulfur, by = c("group_id", "valve")) %>%
+  mutate(
+    H2S = ifelse(is.na(H2S_full), H2S, H2S_full),
+    methanthiol = ifelse(is.na(methanthiol_full), methanthiol, methanthiol_full),
+    dimethyl_sulfide = ifelse(is.na(dimethyl_sulfide_full), dimethyl_sulfide, dimethyl_sulfide_full)
+  ) %>%
+  select(-H2S_full, -methanthiol_full, -dimethyl_sulfide_full)
+
+#Taking other columns for dat#
+oth.col <- dat %>%
+  group_by(group_id) %>%
+  slice_max(time) %>%  # Get the last row per group
+  select(group_id, st, date.time.y, date.time)  # Adjust columns as needed
+
+#Joining all data#
+dat <- left_join(combined_mean, oth.col, by = "group_id")
+
+#Rearranging data#
+dat <- dat %>%
+  select(24:27, everything(), -1)
 
 #Ordering data according to valve#
 split_valve <- split(dat, f = dat$valve)
@@ -30,9 +88,9 @@ for (i in seq_along(split_valve)) {
 #Merging data#
 dat<- new_da
 
-#Removing benzen column#
-dat <- dat %>% select(-benzen)
-
 #Rounding elapsed time to days#
 dat$elapsed.time <- round(as.numeric(dat$elapsed.time))
 dat$days <- dat$elapsed.time / 24
+
+#Removing benzen column#
+dat <- dat %>% select(-benzen, -time, -days)

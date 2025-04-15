@@ -24,5 +24,9 @@ DFC[! complete.cases(DFC), ]
 #Rebind again in dat datasheet#
 dat <- rbind(DFC)
 dat <- dat[order(dat$treatment), ]
+
+#Making duplicate dat.time column#
+dat <- dat %>%
+  mutate(date.time.ori = date.time)
 ########################################################################################
 

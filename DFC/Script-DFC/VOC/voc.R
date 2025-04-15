@@ -64,7 +64,7 @@ columns_to_delete <- c(
 
 # Remove the identified columns from the dat data frame
 dat <- dat %>% select(-all_of(columns_to_delete))
-dat <- dat[, -c(2, 4:29, 32:38)]
+dat <- dat[, -c(2, 7:25, 28:34)]
 
 #Rename vocs
 dat <- dat %>%
@@ -98,7 +98,7 @@ dat <- dat %>%
 
 #creating new dataset for cumulative
 cum.voc <- dat  
-names(cum.voc)[5:23] <- paste0("voc", 1:19)
+names(cum.voc)[8:26] <- paste0("voc", 1:19)
 
 # Define the VOC column names
 voc_cols <- paste0("voc", 1:19)
@@ -113,7 +113,7 @@ for (i in seq_along(voc_cols)) {
 }
 
 #Removing unnecessary data
-cum.voc <- cum.voc [, -c(5:23)]
+cum.voc <- cum.voc [, -c(8:26)]
 
 #Renaming vocs
 cum.voc <- cum.voc %>%
@@ -149,3 +149,4 @@ dat_long <- dat %>%
     names_to = "VOC", 
     values_to = "Flux"
   )
+
