@@ -2,28 +2,6 @@
 #----- Calculating OAV ------------ 
 ########################################################################################
 #Renaming OTV and VOV ppb file data
-voc_names <- c(
-  "Methanol",
-  "Hydrogen sulfide",
-  "4-Methylphenol",
-  "Acetic acid",
-  "Butanoic acid",
-  "Pentanoic acid",
-  "Propanoic acid",
-  "Acetaldehyde",
-  "Formic acid",
-  "Methanethiol",
-  "Acetone",
-  "Trimethylamine",
-  "Dimethyl sulfide",
-  "Isoprene",
-  "Butanone",
-  "Butanedione",
-  "Phenol",
-  "4-ethyl phenol",
-  "Methyl indole"
-)
-
 names(voc_ppb)[8:(8 + length(voc_names) - 1)] <- voc_names
 names(OTV)[2:20] <- voc_names
 
@@ -68,28 +46,6 @@ SOAV <- OAV %>% select(-all_of(SOAV_columns))
 ########################################################################################
 #----- Setting data for plots ------------ 
 ########################################################################################
-# Define the groups for each compound
-voc_category <- c(
-  `Acetic acid` = "Carboxylic Acids",
-  `Butanoic acid` = "Carboxylic Acids",
-  `Pentanoic acid` = "Carboxylic Acids",
-  `Propanoic acid` = "Carboxylic Acids",
-  `Formic acid` = "Carboxylic Acids",
-  `Methyl indole` = "Indole",
-  `4-Methylphenol` = "Phenols",
-  Phenol = "Phenols",
-  `4-ethyl phenol` = "Phenols",
-  `Hydrogen sulfide` = "Volatile Sulfur Compounds (VSC)",
-  Methanethiol = "Volatile Sulfur Compounds (VSC)",
-  `Dimethyl sulfide` = "Volatile Sulfur Compounds (VSC)",
-  Methanol = "Other",
-  Acetaldehyde = "Other",
-  Acetone = "Other",
-  Trimethylamine = "Other",
-  Isoprene = "Other",
-  Butanone = "Other",
-  Butanedione = "Other"
-)
 
 #Creating long format for plotting
 oav_long <- OAV %>%
@@ -130,3 +86,4 @@ oav_long$compound<- factor(oav_long$compound, levels = desired_order)
 ########################################################################################
 #voc_ppb$picarro_time <- format(voc_ppb$picarro_time, "%Y-%m-%d %H:%M:%S")
 names(voc_ppb)[c(2, 3)] <- c("picarro_time", "ptrms_time")
+

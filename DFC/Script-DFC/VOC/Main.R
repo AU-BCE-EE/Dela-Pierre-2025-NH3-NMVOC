@@ -17,6 +17,3 @@ source('export.R')
 sink('/Users/AU775281/Documents/GitHub/Dela-Pierre-2025-NH3-NMVOC/DFC/logs/logs_VOC.txt')
 print(sessionInfo())
 sink()
-
-
-

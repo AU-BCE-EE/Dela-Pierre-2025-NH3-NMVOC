@@ -64,7 +64,7 @@ columns_to_delete <- c(
 
 # Remove the identified columns from the dat data frame
 dat <- dat %>% select(-all_of(columns_to_delete))
-dat <- dat[, -c(2, 7:25, 28:34)]
+dat <- dat[, -c(4, 6:24, 27:33)]
 
 #Rename vocs
 dat <- dat %>%
@@ -98,7 +98,7 @@ dat <- dat %>%
 
 #creating new dataset for cumulative
 cum.voc <- dat  
-names(cum.voc)[8:26] <- paste0("voc", 1:19)
+names(cum.voc)[7:25] <- paste0("voc", 1:19)
 
 # Define the VOC column names
 voc_cols <- paste0("voc", 1:19)
@@ -113,7 +113,7 @@ for (i in seq_along(voc_cols)) {
 }
 
 #Removing unnecessary data
-cum.voc <- cum.voc [, -c(8:26)]
+cum.voc <- cum.voc [, -c(7:25)]
 
 #Renaming vocs
 cum.voc <- cum.voc %>%
@@ -142,11 +142,70 @@ cum.voc <- cum.voc %>%
 ########################################################################################
 #----- Setting data for plots ------------ 
 ########################################################################################
+
+voc_names <- c(
+  "Methanol",
+  "Hydrogen sulfide",
+  "4-Methylphenol",
+  "Acetic acid",
+  "Butanoic acid",
+  "Pentanoic acid",
+  "Propanoic acid",
+  "Acetaldehyde",
+  "Formic acid",
+  "Methanethiol",
+  "Acetone",
+  "Trimethylamine",
+  "Dimethyl sulfide",
+  "Isoprene",
+  "Butanone",
+  "Butanedione",
+  "Phenol",
+  "4-ethyl phenol",
+  "Methyl indole"
+)
+names(dat)[7:(7 + length(voc_names) - 1)] <- voc_names
+
 # Convert data to long format
 dat_long <- dat %>%
   pivot_longer(
-    cols = c(methanol:H2S, `4_Methylphenol`:methyl_indole), 
-    names_to = "VOC", 
-    values_to = "Flux"
+    cols = c(Methanol:`Hydrogen sulfide`, `4-Methylphenol`:`Methyl indole`),
+    names_to = "compound",
+    values_to = "value"
   )
 
+# Define the groups for each compound
+voc_category <- c(
+  `Acetic acid` = "Carboxylic Acids",
+  `Butanoic acid` = "Carboxylic Acids",
+  `Pentanoic acid` = "Carboxylic Acids",
+  `Propanoic acid` = "Carboxylic Acids",
+  `Formic acid` = "Carboxylic Acids",
+  `Methyl indole` = "Indole",
+  `4-Methylphenol` = "Phenols",
+  Phenol = "Phenols",
+  `4-ethyl phenol` = "Phenols",
+  `Hydrogen sulfide` = "Volatile Sulfur Compounds (VSC)",
+  Methanethiol = "Volatile Sulfur Compounds (VSC)",
+  `Dimethyl sulfide` = "Volatile Sulfur Compounds (VSC)",
+  Methanol = "Other",
+  Acetaldehyde = "Other",
+  Acetone = "Other",
+  Trimethylamine = "Other",
+  Isoprene = "Other",
+  Butanone = "Other",
+  Butanedione = "Other"
+)
+
+#Adding the group information to the long data frame
+dat_long <- dat_long %>%
+  mutate(Group = factor(voc_category[compound], levels = c("Carboxylic Acids", "Indole", "Phenols", "Volatile Sulfur Compounds (VSC)", "Other")))
+
+#Aggregating OAV data for plotting
+dat_summary <- dat_long %>%
+  group_by(elapsed.time, treatment, Group) %>%
+  summarise(
+    mean = mean(value, na.rm = TRUE),
+    sd = sd(value, na.rm = TRUE),
+    .groups = "drop"
+  )

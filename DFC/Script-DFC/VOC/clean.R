@@ -33,7 +33,13 @@ mean_all <- dat %>%
   summarise(
     time = max(time),
     valve = first(valve),
-    across(6:26, ~mean(.x, na.rm = TRUE)),
+    across(
+      c("methanol", "H2S", "X4.Methylphenol", "acetic_acid", "butanoic_acid", "pentanoic_acid",
+        "propanoic_acid", "acetladheyde", "formic_acid", "methanthiol", "acetone",
+        "trimethylamine", "dimethyl_sulfide", "isopren", "butanone", "benzen", "butandion",
+        "phenol", "X4_ethyl_phenol", "methyl_indole"),
+      ~mean(.x, na.rm = TRUE)
+    ),
     .groups = "drop"
   )
 
@@ -69,7 +75,7 @@ dat <- left_join(combined_mean, oth.col, by = "group_id")
 
 #Rearranging data#
 dat <- dat %>%
-  select(24:27, everything(), -1)
+  select(24:26, everything(), -1, -3)
 
 #Ordering data according to valve#
 split_valve <- split(dat, f = dat$valve)
@@ -93,4 +99,4 @@ dat$elapsed.time <- round(as.numeric(dat$elapsed.time))
 dat$days <- dat$elapsed.time / 24
 
 #Removing benzen column#
-dat <- dat %>% select(-benzen, -time, -days)
+dat <- dat %>% select(-benzen, -days)

@@ -21,10 +21,10 @@ dat <- rbind(da)
 ########################################################################################
 # Importing VOC data
 voc <- read_xlsx('/Users/AU775281/Documents/GitHub/Dela-Pierre-2025-NH3-NMVOC/DFC/Data/input data/VOC Data/ptrms.xlsx')
+voc <- voc %>%
+  filter(date.time >= as.POSIXct("2024-09-18 12:36:02", tz = "UCT"))
 voc$date <- as.Date(voc$date.time, format = "%m/%d/%y %H:%M")
 voc$time <- format(as.POSIXct(voc$date.time, format = "%m/%d/%y %H:%M"), "%H:%M:%S")
-warnings()
-
 
 ########################################################################################
 #----- Loading Weather data ------------

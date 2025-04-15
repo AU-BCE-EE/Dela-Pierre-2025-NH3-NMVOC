@@ -188,3 +188,52 @@ combined_plot <- plot_grid(
   rel_heights = c(0.6, 0.4)
 ) 
 print(combined_plot)
+
+########################################################################################
+#-----Plot voc Over Time groupwise------------
+########################################################################################
+
+#Generating the faceted plot
+voc.plot <- ggplot(dat_summary, aes(x = elapsed.time, y = mean, fill = Group)) +
+  geom_area(alpha = 0.8, position = "stack", color = "black", linewidth = 0.2) +
+  scale_fill_manual(values = all_colors) +
+  labs(
+    x = "Time after slurry application (hours)",
+    y = expression(paste("VOC (mg ", "*", min^-1, " ", "*", m^-2, ")"))
+  ) + 
+  facet_wrap(~ treatment, scales = "fixed", ncol = 3, labeller = as_labeller(facet_labels)) +
+  theme_minimal(base_size = 10) +
+  theme(
+    # Titles
+    plot.title = element_text(size = 24, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 18, hjust = 0.5, color = "gray40"),
+    
+    # Axes
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 12),
+    axis.text = element_text(size = 12),
+    axis.line = element_line(color = "gray50", linewidth = 0.5),
+    
+    # Legend
+    legend.title = element_blank(),
+    legend.text = element_text(size = 14),
+    legend.position = "bottom",
+    legend.key.size = unit(0.5, "cm"),
+    
+    # Facets
+    strip.text = element_text(size = 12, face = "bold", color = "white"),
+    strip.background = element_rect(fill = "gray70", linewidth = 0.4),
+    
+    # Background and Grid
+    panel.grid = element_line(color = "gray84", linewidth = 0.4),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(color = "gray60", fill = NA, linewidth = 0.5)
+  ) +
+  scale_x_continuous(
+    limits = c(0, 119),
+    breaks = seq(0, 120, by = 20)
+  ) +
+  guides(
+    fill = guide_legend(nrow = 1)
+  )
+print(voc.plot)
