@@ -24,6 +24,14 @@ ggsave("/Users/AU775281/Documents/GitHub/Dela-Pierre-2025-NH3-NMVOC/DFC/Figures/
        dpi = 300, 
        bg = "white")
 
+#Saving plot 4#
+ggsave("/Users/AU775281/Documents/GitHub/Dela-Pierre-2025-NH3-NMVOC/DFC/Figures/voc_plot.png", 
+       plot = voc.plot, 
+       width = 12, 
+       height = 10, 
+       dpi = 300, 
+       bg = "white")
+
 
 #Data file
 write.csv(voc_ppb, '/Users/AU775281/Documents/GitHub/Dela-Pierre-2025-NH3-NMVOC/DFC/Data/output data/VOC/VOC_ppb.csv', row.names = F)

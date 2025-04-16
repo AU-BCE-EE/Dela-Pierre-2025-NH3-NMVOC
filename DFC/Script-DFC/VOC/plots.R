@@ -60,7 +60,7 @@ print(OAVplot)
 ########################################################################################
 
 #Generating the faceted plot
-oav.plot <- ggplot(oav_summary, aes(x = elapsed.time, y = mean, fill = Group)) +
+oav.plot <- ggplot(oav_summary, aes(x = elapsed.time, y = Avgoav, fill = Group)) +
   geom_area(alpha = 0.8, position = "stack", color = "black", linewidth = 0.2) +
   scale_fill_manual(values = all_colors) +
   labs(
@@ -106,7 +106,7 @@ print(oav.plot)
 ########################################################################################
 #-----Plot OAV hourly loss in %------------
 ########################################################################################
-hourly_data <- sum.oav %>%
+hourly_data <- oav.sum %>%
   mutate(
     # Ensure elapsed time is rounded to the nearest multiple of 5
     elapsed.time = floor(elapsed.time / 10) * 10,
@@ -114,7 +114,7 @@ hourly_data <- sum.oav %>%
   ) %>%
   group_by(elapsed.time, hour_label, treatment, Group) %>%  
   summarise(
-    Category_Sum = sum(Sum_Flux, na.rm = TRUE),
+    Category_Sum = sum(Sumoav, na.rm = TRUE),
     .groups = 'drop'
   ) %>%
   group_by(elapsed.time, treatment) %>% 
@@ -194,7 +194,7 @@ print(combined_plot)
 ########################################################################################
 
 #Generating the faceted plot
-voc.plot <- ggplot(dat_summary, aes(x = elapsed.time, y = mean, fill = Group)) +
+voc.plot <- ggplot(dat_summary, aes(x = elapsed.time, y = Avgvoc, fill = Group)) +
   geom_area(alpha = 0.8, position = "stack", color = "black", linewidth = 0.2) +
   scale_fill_manual(values = all_colors) +
   labs(

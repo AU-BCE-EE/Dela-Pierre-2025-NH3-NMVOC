@@ -201,11 +201,13 @@ voc_category <- c(
 dat_long <- dat_long %>%
   mutate(Group = factor(voc_category[compound], levels = c("Carboxylic Acids", "Indole", "Phenols", "Volatile Sulfur Compounds (VSC)", "Other")))
 
-#Aggregating OAV data for plotting
-dat_summary <- dat_long %>%
+#Taking sum of voc data for plotting
+dat_sum <- dat_long %>%
+  group_by(elapsed.time, treatment, valve, Group) %>%
+  summarise(Sumvoc = sum(value), .groups = "drop")
+
+#Aggregating voc data for plotting
+dat_summary <- dat_sum %>%
   group_by(elapsed.time, treatment, Group) %>%
-  summarise(
-    mean = mean(value, na.rm = TRUE),
-    sd = sd(value, na.rm = TRUE),
-    .groups = "drop"
-  )
+  summarise(Avgvoc = mean(Sumvoc), .groups = "drop")
+

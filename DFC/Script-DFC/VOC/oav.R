@@ -68,10 +68,19 @@ oav_summary <- oav_long %>%
     .groups = "drop"
   )
 
-#Taking sum for all treatments and groups for plotting
-sum.oav <- oav_long %>%
+#Taking sum of OAV data for plotting
+oav.sum <- oav_long %>%
+  group_by(elapsed.time, treatment, valve, Group) %>%
+  summarise(Sumoav = sum(value), .groups = "drop")
+
+#Aggregating OAV data for plotting
+oav_summary <- oav.sum %>%
   group_by(elapsed.time, treatment, Group) %>%
-  summarize(Sum_Flux = sum(value, na.rm = TRUE), .groups = 'drop')
+  summarise(Avgoav = mean(Sumoav), .groups = "drop")
+
+#Making order for plottiong
+oav_long$compound<- factor(oav_long$compound, levels = desired_order)
+
 
 #Making order for plottiong
 desired_order <- c("Acetic acid", "Acetaldehyde", "Acetone", "Butanedione", "Butanoic acid", 
@@ -79,11 +88,13 @@ desired_order <- c("Acetic acid", "Acetaldehyde", "Acetone", "Butanedione", "But
                    "Methanol", "Methanethiol", "Methyl indole", "Pentanoic acid", 
                    "Phenol", "Propanoic acid", "Trimethylamine", "4-ethyl phenol", 
                    "4-Methylphenol")
-oav_long$compound<- factor(oav_long$compound, levels = desired_order)
 
+oav_long$compound<- factor(oav_long$compound, levels = desired_order)
 ########################################################################################
 #----- Setting to save as csv file ------------ 
 ########################################################################################
 #voc_ppb$picarro_time <- format(voc_ppb$picarro_time, "%Y-%m-%d %H:%M:%S")
 names(voc_ppb)[c(2, 3)] <- c("picarro_time", "ptrms_time")
+
+
 
