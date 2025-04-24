@@ -58,12 +58,12 @@ mean_sulfur <- dat %>%
 #Overwriting sulfur compound mean for 1st cycle#
 combined_mean <- mean_all %>%
   left_join(mean_sulfur, by = c("group_id", "valve")) %>%
-  mutate(
-    H2S = ifelse(is.na(H2S_full), H2S, H2S_full),
-    methanthiol = ifelse(is.na(methanthiol_full), methanthiol, methanthiol_full),
-    dimethyl_sulfide = ifelse(is.na(dimethyl_sulfide_full), dimethyl_sulfide, dimethyl_sulfide_full)
-  ) %>%
-  select(-H2S_full, -methanthiol_full, -dimethyl_sulfide_full)
+    mutate(
+      H2S = H2S + ifelse(is.na(H2S_full), 0, H2S_full),
+      methanthiol = methanthiol + ifelse(is.na(methanthiol_full), 0, methanthiol_full),
+      dimethyl_sulfide = dimethyl_sulfide + ifelse(is.na(dimethyl_sulfide_full), 0, dimethyl_sulfide_full)
+    ) %>%
+      select(-H2S_full, -methanthiol_full, -dimethyl_sulfide_full)
 
 #Taking other columns for dat#
 oth.col <- dat %>%
