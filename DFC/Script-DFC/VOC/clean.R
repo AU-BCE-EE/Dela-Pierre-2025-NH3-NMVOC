@@ -47,6 +47,7 @@ mean_all <- dat %>%
 mean_sulfur <- dat %>%
   group_by(group_id, valve) %>%
   filter(is_first_cycle) %>%
+  slice_head(n = 3) %>%  # Select first 4 rows of each group
   summarise(
     H2S_full = mean(H2S, na.rm = TRUE),
     methanthiol_full = mean(methanthiol, na.rm = TRUE),
@@ -71,7 +72,7 @@ oth.col <- dat %>%
   select(group_id, st, date.time.y, date.time)  # Adjust columns as needed
 
 #Joining all data#
-dat <- left_join(combined_mean, oth.col, by = "group_id")
+dat <- left_join(mean_all, oth.col, by = "group_id")
 
 #Rearranging data#
 dat <- dat %>%
@@ -100,3 +101,4 @@ dat$days <- dat$elapsed.time / 24
 
 #Removing benzen column#
 dat <- dat %>% select(-benzen, -days)
+

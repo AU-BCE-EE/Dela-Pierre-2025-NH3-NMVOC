@@ -237,3 +237,4 @@ voc.plot <- ggplot(dat_summary, aes(x = elapsed.time, y = Avgvoc, fill = Group))
     fill = guide_legend(nrow = 1)
   )
 print(voc.plot)
+

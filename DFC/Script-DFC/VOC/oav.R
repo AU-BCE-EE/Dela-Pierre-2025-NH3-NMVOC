@@ -79,17 +79,15 @@ oav_summary <- oav.sum %>%
   summarise(Avgoav = mean(Sumoav), .groups = "drop")
 
 #Making order for plottiong
-oav_long$compound<- factor(oav_long$compound, levels = desired_order)
-
-
-#Making order for plottiong
 desired_order <- c("Acetic acid", "Acetaldehyde", "Acetone", "Butanedione", "Butanoic acid", 
                    "Butanone", "Dimethyl sulfide", "Formic acid", "Hydrogen sulfide", "Isoprene", 
                    "Methanol", "Methanethiol", "Methyl indole", "Pentanoic acid", 
                    "Phenol", "Propanoic acid", "Trimethylamine", "4-ethyl phenol", 
                    "4-Methylphenol")
 
+#Making order for plottiong
 oav_long$compound<- factor(oav_long$compound, levels = desired_order)
+
 ########################################################################################
 #----- Setting to save as csv file ------------ 
 ########################################################################################

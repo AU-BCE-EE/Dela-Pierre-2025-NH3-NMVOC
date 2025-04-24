@@ -1,6 +1,6 @@
 R version 4.4.1 (2024-06-14)
 Platform: aarch64-apple-darwin20
-Running under: macOS 15.4
+Running under: macOS 15.4.1
 
 Matrix products: default
 BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 

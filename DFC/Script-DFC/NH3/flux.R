@@ -35,10 +35,13 @@ dat$NH3.flux <- ((dat$n * M.N * dat$air.flow) / dat$dfc.area) * 1000
 ########################################################################################
 #----- Cumulative emissions ------------ 
 ########################################################################################
-
 #Calculating cumulative emissions#
 dat$cum.treat <- mintegrate((dat$elapsed.time*60), dat$NH3.flux, by = dat$valve, method = 'trap') #(NH3-N mg m^-2)
 
+
+########################################################################################
+#----- Setting data for plots ------------
+########################################################################################
 #Aggregate NH3 flux data by elapsed time and treatment group for plots#
 dat_summary <- aggregate(
   NH3.flux ~ elapsed.time + group, 
