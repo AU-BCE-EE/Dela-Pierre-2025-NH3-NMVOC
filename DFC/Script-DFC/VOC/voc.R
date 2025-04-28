@@ -211,3 +211,6 @@ dat_summary <- dat_sum %>%
   group_by(elapsed.time, treatment, Group) %>%
   summarise(Avgvoc = mean(Sumvoc), .groups = "drop")
 
+dat_summary$Group <- factor(dat_summary$Group, levels = c(
+  "Volatile Sulfur Compounds (VSC)", "Phenols", "Carboxylic Acids", "Other", "Indole"
+))

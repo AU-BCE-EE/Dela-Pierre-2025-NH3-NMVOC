@@ -72,7 +72,7 @@ oth.col <- dat %>%
   select(group_id, st, date.time.y, date.time)  # Adjust columns as needed
 
 #Joining all data#
-dat <- left_join(mean_all, oth.col, by = "group_id")
+dat <- left_join(combined_mean, oth.col, by = "group_id")
 
 #Rearranging data#
 dat <- dat %>%

@@ -18,3 +18,4 @@ sink('/Users/AU775281/Documents/GitHub/Dela-Pierre-2025-NH3-NMVOC/DFC/logs/logs_
 print(sessionInfo())
 sink()
 
+head(oav_summary)

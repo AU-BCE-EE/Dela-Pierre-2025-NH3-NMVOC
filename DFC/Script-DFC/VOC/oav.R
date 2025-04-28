@@ -87,7 +87,9 @@ desired_order <- c("Acetic acid", "Acetaldehyde", "Acetone", "Butanedione", "But
 
 #Making order for plottiong
 oav_long$compound<- factor(oav_long$compound, levels = desired_order)
-
+oav_summary$Group <- factor(oav_summary$Group, levels = c(
+  "Volatile Sulfur Compounds (VSC)", "Phenols", "Carboxylic Acids", "Other", "Indole"
+))
 ########################################################################################
 #----- Setting to save as csv file ------------ 
 ########################################################################################
