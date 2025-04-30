@@ -43,11 +43,17 @@ mean_all <- dat %>%
     .groups = "drop"
   )
 
-#Calculate last 8 min averages for sulfur compounds#
+#Calculate last 4 min averages for sulfur compounds#
+
+dat <- dat %>%
+  mutate(date_min = floor_date(date.time, unit = "minute"))
+
 mean_sulfur <- dat %>%
+  mutate(date_min = floor_date(date.time, unit = "minute")) %>%
   group_by(group_id, valve) %>%
   filter(is_first_cycle) %>%
-  slice_head(n = 3) %>%  # Select first 4 rows of each group
+  mutate(start_min = min(date_min)) %>%
+  filter(date_min >= start_min & date_min < start_min + minutes(4)) %>%
   summarise(
     H2S_full = mean(H2S, na.rm = TRUE),
     methanthiol_full = mean(methanthiol, na.rm = TRUE),
@@ -55,7 +61,7 @@ mean_sulfur <- dat %>%
     .groups = "drop"
   )
 
-#Overwriting sulfur compound mean for 1st cycle#
+#Adding sulfur compound mean for 1st cycle#
 combined_mean <- mean_all %>%
   left_join(mean_sulfur, by = c("group_id", "valve")) %>%
     mutate(
