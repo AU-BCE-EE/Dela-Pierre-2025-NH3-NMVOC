@@ -4,6 +4,7 @@ source('packages.R')
 source('functions.R')
 source('load.R')
 source('merging.R')
+source('scomp.R')
 source('clean.R')
 source('settings.R')
 source('background.R')
@@ -18,4 +19,4 @@ sink('/Users/AU775281/Documents/GitHub/Dela-Pierre-2025-NH3-NMVOC/DFC/logs/logs_
 print(sessionInfo())
 sink()
 
-head(oav_summary)
+

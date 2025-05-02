@@ -90,11 +90,41 @@ oav_long$compound<- factor(oav_long$compound, levels = desired_order)
 oav_summary$Group <- factor(oav_summary$Group, levels = c(
   "Volatile Sulfur Compounds (VSC)", "Phenols", "Carboxylic Acids", "Other", "Indole"
 ))
+
+########################################################################################
+#----- Vertical line for 0h VSC ------------ 
+########################################################################################
+
+#Define the compounds#
+compounds <- c("Hydrogen sulfide", "Methanethiol", "Dimethyl sulfide")
+
+#Filtering intial 8 mins#
+peak.oav <- oav_long %>%
+  filter(elapsed.time == 0) %>%  # Filter rows where elapsed.time is 0
+  group_by(treatment, valve)
+
+#Filtering max values for each compound#
+peak.oav <- peak.oav %>%
+  filter(Group == "Volatile Sulfur Compounds (VSC)")%>%
+  group_by(group, compound) %>%
+  filter(value == max(value, na.rm = TRUE)) %>%
+  ungroup()
+
+#Taking sum of all VSC compounds#
+peak.oav <- peak.oav %>%
+  group_by(group, Group) %>%
+  summarise(
+    value = sum(value),  # Summing up the 'value' column
+    .groups = "drop"  # This removes the grouping after summarization
+  )
+
+#Addind elapsed time column#
+peak.oav <- peak.oav %>%
+  mutate(elapsed.time = 0)
+
 ########################################################################################
 #----- Setting to save as csv file ------------ 
 ########################################################################################
 #voc_ppb$picarro_time <- format(voc_ppb$picarro_time, "%Y-%m-%d %H:%M:%S")
 names(voc_ppb)[c(2, 3)] <- c("picarro_time", "ptrms_time")
-
-
 

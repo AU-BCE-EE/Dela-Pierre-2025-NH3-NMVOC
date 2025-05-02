@@ -98,17 +98,56 @@ for (i in 1:19) {
   }
 }
 
-
 #Rebind again in dat datasheet#
 dat <- rbind(DFC)
 
-#Checking and ordering
-str(dat)
 
-#Concentration in ppb
+
+########################################################################################
+#----- Background subtraction from sulfur compounds ------------ 
+########################################################################################
+
+#Background#
+s.dfc.bg <- s.dat %>%
+  filter(group == "Background")
+
+#Outlet data#
+s.dfc <- s.dat %>%
+  filter(group %in% c('No acid', 'Low acid', 'Medium acid', 'High acid', 'Machine plot'))
+
+s_col <- c("voc1", "voc2", "voc3")
+
+#Mean background values#
+s.dfc.bg.summ <- aggregate(s.dfc.bg[s_col],
+                           by = list(elapsed.time = s.dfc.bg$elapsed.time),
+                           FUN = mean, na.rm = TRUE)
+
+names(s.dfc.bg.summ)[2:4] <- c("voc.bg1", "voc.bg2", "voc.bg3")
+
+#Joining average background and outlet data#
+s.dfc <- full_join(s.dfc.bg.summ, s.dfc, by = 'elapsed.time')
+
+#Subtracting background from outlet#
+s.dfc <- s.dfc %>%
+  mutate(
+    voc.corr1 = pmax(voc1 - voc.bg1, 0),
+    voc.corr2 = pmax(voc2 - voc.bg2, 0),
+    voc.corr3 = pmax(voc3 - voc.bg3, 0)
+  )
+
+
+#Rebind again in dat datasheet#
+s.dat <- rbind(s.dfc)
+s.dat <- s.dat[order(s.dat$treatment), ]
+
+########################################################################################
+#----- Background subtraction for sulfur compounds OAV ------------ 
+########################################################################################
 voc_ppb <- dat %>%
   filter(elapsed.time >= 0 & elapsed.time <= 120) #For OTV calculation
 voc_ppb <- voc_ppb [, -c(2:20, 25:43)]
+
+
 
 
 

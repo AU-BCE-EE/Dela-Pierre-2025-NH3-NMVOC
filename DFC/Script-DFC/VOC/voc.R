@@ -1,5 +1,5 @@
 ########################################################################################
-#----- Calculating flux ------------ 
+#----- Flux calculation prerequisite data ------------ 
 ########################################################################################
 #VOC flux prerequisite components#
 #Convert temperature from C to F#
@@ -24,7 +24,47 @@ MW_long <- MW %>%
   pivot_wider(names_from = compund, values_from = value) %>%
   mutate(MW = as.numeric(MW))
 
+s.MW <- MW_long %>%
+  filter(VOC %in% c("Hydrogen sulfide", "Methanthiol", "Dimethyl sulfide")) %>%
+  mutate(RN = case_when(
+    row_number() == 1 ~ "voc1",
+    row_number() == 2 ~ "voc2",
+    row_number() == 3 ~ "voc3",
+    TRUE ~ as.character(RN)
+  ))
+########################################################################################
+#----- Setting data for sulfur compounds ------------ 
+########################################################################################
+oth.data <- dat %>%
+  filter(elapsed.time == 0) %>%
+  select(air.temp.K, valve, air.flow, dfc.area)
+s.dat <- left_join(s.dat, oth.data, by = c('valve' = 'valve'))
 
+########################################################################################
+#----- Calculating flux for sulfur ------------ 
+########################################################################################
+
+# Sulfur flux
+for (i in 1:3) {
+  s.col <- paste0("voc.corr", i)
+  s.mol <- paste0("voc.mol", i)
+  s.flux <- paste0("voc_flux", i)
+  
+  s.voc_id <- paste0("voc", i)
+  s.mw_value <- s.MW %>% filter(RN == s.voc_id) %>% pull(MW)
+  
+  if (s.col %in% names(s.dat) && length(s.mw_value) > 0 && !is.na(s.mw_value)) {
+    s.dat[[s.mol]] <- (atm.con / (g.con * s.dat$air.temp.K)) * s.dat[[s.col]] * 1e-9
+    s.dat[[s.flux]] <- ((s.dat[[s.mol]] * s.mw_value * s.dat$air.flow) / s.dat$dfc.area) * 1000
+  } else {
+    warning(paste("Column", s.col, "does not exist, or molecular weight is missing"))
+  }
+}
+
+
+########################################################################################
+#----- Calculating flux for all voc ------------ 
+########################################################################################
 #VOC flux
 for (i in 1:19) {
   voc_bg_col <- paste0("voc_corr", i)
@@ -51,9 +91,6 @@ for (i in 1:19) {
   }
 }
 
-# Check the result
-head(dat)
-
 # Identify the columns to be deleted
 columns_to_delete <- c(
   paste0("voc_corr_mol", 1:19),
@@ -61,13 +98,34 @@ columns_to_delete <- c(
   paste0("voc_corr", 1:19)
   
 )
-
+col_delete <- c(
+  paste0("voc.mol", 1:3),
+  paste0("voc.bg", 1:3),
+  paste0("voc.corr", 1:3),
+  paste0("voc", 1:3)
+  
+)
 # Remove the identified columns from the dat data frame
+s.dat <- s.dat %>% select(-all_of(col_delete))
 dat <- dat %>% select(-all_of(columns_to_delete))
 dat <- dat[, -c(4, 6:24, 27:33)]
+options(scipen = 999)
+colnames(s.dat)[11:13] <- c("voc_flux2", "voc_flux10", "voc_flux13")
+
+
+combined_mean <- dat %>%
+  left_join(s.dat %>% select(elapsed.time, valve, voc_flux2, voc_flux10, voc_flux13),
+            by = c("elapsed.time", "valve"),
+            suffix = c("", "_sdat")) %>%
+  mutate(
+    voc_flux2  = voc_flux2  + ifelse(is.na(voc_flux2_sdat),  0, voc_flux2_sdat),
+    voc_flux10 = voc_flux10 + ifelse(is.na(voc_flux10_sdat), 0, voc_flux10_sdat),
+    voc_flux13 = voc_flux13 + ifelse(is.na(voc_flux13_sdat), 0, voc_flux13_sdat)
+  ) %>%
+  select(-voc_flux2_sdat, -voc_flux10_sdat, -voc_flux13_sdat)
 
 #Rename vocs
-dat <- dat %>%
+dat <- combined_mean %>%
   rename(
     methanol = voc_flux1,
     H2S = voc_flux2,
@@ -214,3 +272,4 @@ dat_summary <- dat_sum %>%
 dat_summary$Group <- factor(dat_summary$Group, levels = c(
   "Volatile Sulfur Compounds (VSC)", "Phenols", "Carboxylic Acids", "Other", "Indole"
 ))
+

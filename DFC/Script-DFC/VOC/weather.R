@@ -34,3 +34,5 @@ head(weather$date.time.weather)
 #Merging data#
 dat <- left_join(dat, weather, by = c('date.time' = 'date.time.weather'))
 ########################################################################################
+
+

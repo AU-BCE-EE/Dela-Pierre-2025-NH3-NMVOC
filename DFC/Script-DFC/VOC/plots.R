@@ -67,6 +67,13 @@ oav.plot <- ggplot(oav_summary, aes(x = elapsed.time, y = Avgoav, fill = Group))
     x = "Time after slurry application (hours)",
     y = "OAV"
   ) + 
+  # Vertical lines at time = 0 to show "peak" change
+  geom_segment(
+    data = filter(peak.oav, elapsed.time == 0),  # Now peak.oav has elapsed.time
+    aes(x = 0, xend = 0, y = min(value), yend = max(value), color = Group),  # Use 'value' in peak.oav
+    size = 1,
+    color = "red"
+  ) +
   facet_wrap(~ treatment, scales = "fixed", ncol = 3, labeller = as_labeller(facet_labels)) +
   theme_minimal(base_size = 10) +
   theme(
@@ -103,6 +110,8 @@ oav.plot <- ggplot(oav_summary, aes(x = elapsed.time, y = Avgoav, fill = Group))
     fill = guide_legend(nrow = 1)
   )
 print(oav.plot)
+
+
 ########################################################################################
 #-----Plot OAV hourly loss in %------------
 ########################################################################################
