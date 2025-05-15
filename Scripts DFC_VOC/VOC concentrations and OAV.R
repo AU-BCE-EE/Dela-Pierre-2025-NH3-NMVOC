@@ -135,9 +135,9 @@ vsc_bg_values <- c(
 # Subtract background from all VSC measurements
 cycle1_corrected <- cycle1_data %>%
   mutate(
-    H2S_corr = pmax(0, H2S - vsc_bg_values["H2S"]),
-    dimethyl_sulfide_corr = pmax(0, dimethyl_sulfide - vsc_bg_values["dimethyl_sulfide"]),
-    methanthiol_corr = pmax(0, methanthiol - vsc_bg_values["methanthiol"])
+    H2S_corrected = pmax(0, H2S - vsc_bg_values["H2S"]),
+    dimethyl_sulfide_corrected = pmax(0, dimethyl_sulfide - vsc_bg_values["dimethyl_sulfide"]),
+    methanthiol_corrected = pmax(0, methanthiol - vsc_bg_values["methanthiol"])
   )
 
 #  Calculate elapsed time (seconds) from first timepoint in each valve
@@ -153,7 +153,7 @@ vsc_only <- cycle1_corrected %>%
   select(
     valve, treatment, group, cycle_number, date.time,
     H2S, dimethyl_sulfide, methanthiol,
-    H2S_corr, dimethyl_sulfide_corr, methanthiol_corr,
+    H2S_corrected, dimethyl_sulfide_corrected, methanthiol_corrected,
     elapsed_time_sec
   )
 vsc_only<-filter(vsc_only, group!="Background")
