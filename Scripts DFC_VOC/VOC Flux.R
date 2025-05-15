@@ -13,7 +13,7 @@ A.frame <- (0.7/2)^2 * 3.14  # Chamber area (m^2)
 # Import ambient temperature data
 weather <- read_csv("Temp.csv")
 
-# Import VOC data
+# Import VOC data, the 30s background corrected averages created in the VOC concentrations and OAV.R
 dat <- read_delim("voc.30s.corrected.csv", 
                   delim = ",", escape_double = FALSE, trim_ws = TRUE)
 View(dat)
