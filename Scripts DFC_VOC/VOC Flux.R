@@ -16,7 +16,8 @@ weather <- read_csv("Temp.csv") #find this in Flavia_VOC_DFC_data folder
 # Import VOC data, the 30s background corrected averages created in the VOC concentrations and OAV.R
 dat <- read_delim("voc.30s.corrected.csv", 
                   delim = ",", escape_double = FALSE, trim_ws = TRUE)
-View(dat)
+vsc_ini <- read_csv("vsc.first.minutes.txt") #file created in the VOC concentrations and OAV script, these are the initial concentrations for VSC (first 8 minutes)
+
 
 # ========== Process temperature data ==========
 # Parse dates in weather data
@@ -116,7 +117,65 @@ final_dat <- dat %>%
     # Any grouping variables you need
     group, treatment, valve
   )
-# ========== Define compound categories and palette for the plots ==========
+
+# ========== Calculate initial flux for vsc compounds ==========
+# Get all the bg-corrected-concentrations compound column names
+# Extract temp.K from cycle 1 of each valve
+cycle1_temp <- dat %>%
+  filter(cycle_number == 1) %>%
+  group_by(valve) %>%
+  summarise(temp.K = first(temp.K), .groups = "drop")
+
+# Join with vsc_ini
+vsc_ini <- vsc_ini %>%
+  left_join(cycle1_temp, by = "valve")
+
+
+corrected_cols <- grep("_corrected$", names(vsc_ini), value = TRUE)
+
+# Process each compound
+for(col in corrected_cols) {
+  # Extract base compound name
+  compound_name <- gsub("_corrected$", "", col)
+  
+  # Find corresopnding molecular weight
+  mw <- mw_data$mw[mw_data$compound == compound_name]
+  if(length(mw) == 0) {
+    warning(paste("No molecular weight found for", compound_name))
+    mw <- NA
+  }
+  
+  # Calculate concentration in mol/L
+  mol_col <- paste0(compound_name, "_mol_L")
+  vsc_ini[[mol_col]] <- p.con / (R.con * vsc_ini$temp.K) * vsc_ini[[col]] * 10^-9
+  
+  # Calculate flux in mg/min/m^2
+  flux_col <- paste0(compound_name, "_flux_mg")
+  vsc_ini[[flux_col]] <- ((vsc_ini[[mol_col]] * air.flow * mw) / A.frame)  * 1000
+  
+  # Set negative values to zero (althought it is not necessary, already done in the ppb concentrations)
+  vsc_ini[[flux_col]][vsc_ini[[flux_col]] < 0] <- 0
+}
+
+
+final_vsc_ini <- vsc_ini %>%
+  select(
+    # Time information
+    contains("time"), contains("date"),
+    
+    # Temperature
+    contains("temp"),
+    
+    # Original corrected concentrations (ppb)
+    ends_with("_corrected"),
+    
+    # Calculated flux values
+    ends_with("_flux_mg"),
+    
+    # Any grouping variables you need
+    group, treatment, valve
+  )
+# ========== Define compound categories and palette for the plots ===============================================================
 compound_categories <- tibble(
   compound = c(
     "acetic_acid", "butanoic_acid", "pentanoic_acid", "propanoic_acid", "formic_acid",
@@ -140,6 +199,9 @@ voc_colors <- c(
   "Other" = "#76b7b2",
   "Indole" = "#59a14f"
 )
+# ===========================================================================================================================
+
+
 
 # ========== Prepare data for visualization ==========
 # Gather flux data by category, accounting for valve replicates
@@ -208,8 +270,33 @@ for (flux_col in flux_cols) {
   
 }
 names(flux_time_series)
+
+
+### calculate cum emissions for vsc data initial minutes
+
+# Identify all flux columns in the dataset
+flux_cols <- grep("_flux_mg$", names(vsc_ini), value = TRUE)
+
+# Calculate cumulative emissions for each flux column with m-integrate
+for (flux_col in flux_cols) {
+  # Create name for the cumulative column
+  compound_name <- gsub("_flux_mg$", "", flux_col)
+  cum_col <- paste0("cum.", compound_name)
+  
+  # Calculate cumulative emissions using mintegrate
+  vsc_ini[[cum_col]] <- mintegrate(
+    (vsc_ini$elapsed_time_sec/60),  # Convert elapsed time to minutes
+    vsc_ini[[flux_col]],          # The flux values for this compound
+    by = vsc_ini$valve,           # Group by valve
+    method = 'trap'           # Use trapezoidal method
+  )
+  
+  
+}
+
 # Get all cumulative emission columns
 cum_cols <- grep("^cum\\.", names(dat), value = TRUE)
+names(final_emissions)
 
 # Extract data at elapsed_time  119 (total cumulative emissions) for each valve
 final_emissions <- dat %>%
@@ -219,6 +306,25 @@ final_emissions <- dat %>%
   select(group, valve, elapsed_time, all_of(cum_cols))%>%
          mutate(total_cum = rowSums(across(all_of(cum_cols)), na.rm = TRUE)) %>%
   ungroup()
+
+# ========== ADD CUMULATIVE EMISSIONS OF THE VSC INITIAL MEASUREMENTS TO THE CUMULATIVE EMISSIONS AT TIME 119 ==========
+#Select relevant cumulative VSCs from vsc_ini
+vsc_cum_add <- vsc_ini %>%
+  group_by(valve) %>%
+  filter(elapsed_time_sec == max(elapsed_time_sec, na.rm = TRUE)) %>%
+  ungroup() %>%
+  select(valve, cum.H2S, cum.dimethyl_sulfide, cum.methanthiol)
+
+
+# Add these to final_emissions by valve
+final_emissions <- final_emissions %>%
+  left_join(vsc_cum_add, by = "valve", suffix = c("", ".vsc_ini")) %>%
+  mutate(
+    cum.H2S = cum.H2S + cum.H2S.vsc_ini,
+    cum.dimethyl_sulfide = cum.dimethyl_sulfide + cum.dimethyl_sulfide.vsc_ini,
+    cum.methanthiol = cum.methanthiol + cum.methanthiol.vsc_ini
+  ) %>%
+  select(-cum.H2S.vsc_ini, -cum.dimethyl_sulfide.vsc_ini, -cum.methanthiol.vsc_ini)
 
 # Calculate group averages
 group_emissions <- final_emissions %>%
