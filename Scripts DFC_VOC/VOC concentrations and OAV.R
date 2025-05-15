@@ -114,7 +114,49 @@ corrected_averages <- valve_30s_averages %>%
     start_time, end_time,
     ends_with("_avg_30s"), ends_with("_corrected")
   )
+# ======== CREATE THE DATASET OF THE FIRST 8 MINUTES MEASUREMENTS OF VSC FOR FURTHER CALCULATIONS IN CUM EMISSIONS ========
 
+#  Filter data for cycle 1 data
+cycle1_data <- data_with_cycles %>% 
+  filter(cycle_number == 1)
+
+#  Extract background values for cycle 1
+cycle1_bg_values <- background_averages %>% 
+  filter(cycle_number == 1) %>%
+  select(H2S_avg_30s_bg, dimethyl_sulfide_avg_30s_bg, methanthiol_avg_30s_bg)
+
+# Store background values in named vector
+vsc_bg_values <- c(
+  H2S = cycle1_bg_values$H2S_avg_30s_bg,
+  dimethyl_sulfide = cycle1_bg_values$dimethyl_sulfide_avg_30s_bg,
+  methanthiol = cycle1_bg_values$methanthiol_avg_30s_bg
+)
+
+# Subtract background from all VSC measurements
+cycle1_corrected <- cycle1_data %>%
+  mutate(
+    H2S_corr = pmax(0, H2S - vsc_bg_values["H2S"]),
+    dimethyl_sulfide_corr = pmax(0, dimethyl_sulfide - vsc_bg_values["dimethyl_sulfide"]),
+    methanthiol_corr = pmax(0, methanthiol - vsc_bg_values["methanthiol"])
+  )
+
+#  Calculate elapsed time (seconds) from first timepoint in each valve
+cycle1_corrected <- cycle1_corrected %>%
+  group_by(valve) %>%
+  mutate(
+    elapsed_time_sec = as.numeric(difftime(date.time, min(date.time), units = "min"))
+  ) %>%
+  ungroup()
+
+# create the dataset
+vsc_only <- cycle1_corrected %>%
+  select(
+    valve, treatment, group, cycle_number, date.time,
+    H2S, dimethyl_sulfide, methanthiol,
+    H2S_corr, dimethyl_sulfide_corr, methanthiol_corr,
+    elapsed_time_sec
+  )
+vsc_only<-filter(vsc_only, group!="Background")
 # ======== OAV CALCULATIONS ========
 # Define compound mapping for OTV values (we want to match the names with the OTV dataset)
 compound_mapping <- c(
@@ -392,6 +434,7 @@ final_plot <- wrap_plots(plot_list, ncol = 2) +
   )
 
 print(final_plot)
-#save OAV and 30s background corrected averages
+#save OAV, 30s background corrected averages, and VSC initial dataset
 write_csv(OAV, "OAV_fin.csv")
 write_csv(corrected_averages, "voc.30s.corrected.csv")
+write.table(vsc_only, "vsc.first.minutes.txt") #need to use erite.table otherwise it changes the time format
