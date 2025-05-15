@@ -12,7 +12,7 @@ library(scales)# For combining plots
 # ======== DATA IMPORT & PREPROCESSING ========
 
 # Import OTV values and corrected concentrations
-OTV <- read_excel("OTV.xlsx", sheet = "Sheet2") # OTV file OTV.xlsx
+OTV <- read_excel("OTV.xlsx", sheet = "Sheet2") # OTV file OTV.xlsx find this in the Flavia_VOC_DFC_data folder
 
 dt <- read_csv("raw.ptrms.valves.txt") #dt is the dataset created in the PTRMS valve assignment script
 # filter for exact starting time
