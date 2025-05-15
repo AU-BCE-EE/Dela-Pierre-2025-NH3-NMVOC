@@ -437,4 +437,4 @@ print(final_plot)
 #save OAV, 30s background corrected averages, and VSC initial dataset
 write_csv(OAV, "OAV_fin.csv")
 write_csv(corrected_averages, "voc.30s.corrected.csv")
-write.table(vsc_only, "vsc.first.minutes.txt") #need to use write.table otherwise it changes the time format
+write.table(vsc_only, "vsc.first.minutes.txt", row.names= F, sep= ",") #need to use write.table otherwise it changes the time format
