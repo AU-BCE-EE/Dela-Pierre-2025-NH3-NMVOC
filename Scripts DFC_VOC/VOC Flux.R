@@ -296,7 +296,6 @@ for (flux_col in flux_cols) {
 
 # Get all cumulative emission columns
 cum_cols <- grep("^cum\\.", names(dat), value = TRUE)
-names(final_emissions)
 
 # Extract data at elapsed_time  119 (total cumulative emissions) for each valve
 final_emissions <- dat %>%
