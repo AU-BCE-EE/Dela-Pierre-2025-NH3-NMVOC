@@ -392,3 +392,6 @@ final_plot <- wrap_plots(plot_list, ncol = 2) +
   )
 
 print(final_plot)
+#save OAV and 30s background corrected averages
+write_csv(OAV, "OAV_fin.csv")
+write_csv(corrected_averages, "voc.30s.corrected.csv")
