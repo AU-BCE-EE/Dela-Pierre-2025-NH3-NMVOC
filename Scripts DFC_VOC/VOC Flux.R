@@ -2,7 +2,7 @@
 library(tidyverse)     
 library(lubridate)     
 library(patchwork)     
-source("E:/DFC_VOC/github/functions/mintegrate.R")
+source("mintegrate.R")
 # Set constants for calculations
 p.con <- 1             # Atmospheric pressure (atm)
 R.con <- 0.082057338   # Gas constant (L·atm/(mol·K))
