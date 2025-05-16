@@ -11,10 +11,10 @@ A.frame <- (0.7/2)^2 * 3.14  # Chamber area (m^2)
 
 # ========== Import and prepare data ==========
 # Import ambient temperature data
-weather <- read_csv("Temp.csv") #find this in Flavia_VOC_DFC_data folder
+weather <- read_csv(""../Flavia_VOC_DFC_data/Temp.csv") #find this in Flavia_VOC_DFC_data folder
 
 # Import VOC data, the 30s background corrected averages created in the VOC concentrations and OAV.R
-dat <- read_delim("voc.30s.corrected.csv", 
+dat <- read_delim(""../Flavia_VOC_DFC_data/voc.30s.corrected.csv", 
                   delim = ",", escape_double = FALSE, trim_ws = TRUE)
 vsc_ini <- read_csv("vsc.first.minutes.txt") #file created in the VOC concentrations and OAV script, these are the initial concentrations for VSC (first 8 minutes)
 #remove any duplicate rows in dat, otherwise mintegrate does not work
