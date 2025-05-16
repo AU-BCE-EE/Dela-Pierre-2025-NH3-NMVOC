@@ -18,7 +18,7 @@ a<-readCRDS("",
               tz = "UTC", 
               rm = F) #Picarro data
 # PTRMS data
-dt<-read_xlsx("ptrms.xlsx") #PTRMS data, file ptrms.xlsx find this in the Flavia_VOC_DFC_data folder, concentrations already corrected for k-values
+dt<-read_xlsx("../Flavia_VOC_DFC_data/ptrms.xlsx") #PTRMS data, file ptrms.xlsx find this in the Flavia_VOC_DFC_data folder, concentrations already corrected for k-values
 #create a date&time column for Picarro data
 a$date.time <- paste(a$DATE, a$TIME)
 a$date.time<-ymd_hms(a$date.time)
