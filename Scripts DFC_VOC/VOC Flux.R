@@ -17,8 +17,13 @@ weather <- read_csv("Temp.csv") #find this in Flavia_VOC_DFC_data folder
 dat <- read_delim("voc.30s.corrected.csv", 
                   delim = ",", escape_double = FALSE, trim_ws = TRUE)
 vsc_ini <- read_csv("vsc.first.minutes.txt") #file created in the VOC concentrations and OAV script, these are the initial concentrations for VSC (first 8 minutes)
-
-
+#remove any duplicate rows in dat, otherwise mintegrate does not work
+dat <- dat %>%
+  # Group by valve
+  group_by(valve) %>%
+  # If there are duplicates in elapsed_time, keep the first occurrence
+  distinct(elapsed_time, .keep_all = TRUE) %>%
+  ungroup()
 # ========== Process temperature data ==========
 # Parse dates in weather data
 weather$date <- parse_date_time(weather$date, orders = c("d/m/y", "d-m/y"))
