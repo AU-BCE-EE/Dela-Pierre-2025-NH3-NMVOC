@@ -11,7 +11,7 @@ library(readxl)
 devtools::source_url('https://raw.githubusercontent.com/AU-BCE-EE/guidance/main/Picarro/PicarroFunction.R')
 
 # Picarro data
-a<-readCRDS("", 
+a<-readCRDS("../DFC/Data/input data/NH3", 
               From = '18.09.2024 11:00:00', 
               To = '24.09.2024 08:00:00', 
               mult = T, 
