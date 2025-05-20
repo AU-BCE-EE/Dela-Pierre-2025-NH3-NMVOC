@@ -342,51 +342,56 @@ create_broken_axis_plot <- function(group_name, show_x_title = FALSE, show_y_tit
   x_min <- 0  # Start from 0
   x_max <- max_x  # Use 119 as maximum
   
-  # Create a single plot with manipulated coordinates
-  p <- ggplot() +
-    # Add stacked areas for lower part (up to 1250 now)
-    geom_area(data = group_data, 
-              aes(x = elapsed_time, y = pmin(value, 1250), fill = category),
-              alpha = 0.8) +
-    # Add VSC peaks for lower part (up to 1250)
-    geom_linerange(data = group_peaks,
-                   aes(x = elapsed_time, ymin = 0, ymax = pmin(value, 1250)),
-                   color = "#f28e2b", size = 0.5) +
-    # Add VSC peaks for upper part (above 1250)
-    geom_linerange(data = group_peaks %>% filter(value > 1250),
-                   aes(x = elapsed_time, 
-                       ymin = 1250,
-                       ymax = 1250 + (value - 1250) / (rounded_max - 1250) * 125),
-                   color = "#f28e2b", size = 0.5) +
-    # Add total OAV line on top of stacked areas
-    geom_line(data = group_totals,
-              aes(x = elapsed_time, y = pmin(total_value, 1250)),
-              color = "black", size = 0.7) +
-    # Add break lines at 1250
-    geom_hline(yintercept = 1250, linetype = "dotted", color = "black", size = 0.7) +
-    geom_hline(yintercept = 1256, linetype = "dotted", color = "black", size = 0.7) +
-    # Custom scale specifications
+    p <- ggplot() +
+    # LOWER PART: Stacked Areas and lines, limited to 900 to improve the visualization mantaining the same y-axis scales for each group-plot
+    geom_area(
+      data = group_data, 
+      aes(x = elapsed_time, y = pmin(value, 900), fill = category),
+      alpha = 0.8
+    ) +
+    geom_linerange(
+      data = group_peaks,
+      aes(x = elapsed_time, ymin = 0, ymax = pmin(value, 900)),
+      color = "#f28e2b", size = 0.5
+    ) +
+    # UPPER PART: VSC Peaks above 900, shown "compressed" in the gap
+    geom_linerange(
+      data = group_peaks %>% filter(value > 900),
+      aes(
+        x = elapsed_time,
+        ymin = 900,
+        ymax = 900 + (value - 900) / (rounded_max - 900) * 150  
+      ),
+      color = "#f28e2b", size = 0.5
+    ) +
+    geom_line(
+      data = group_totals,
+      aes(x = elapsed_time, y = pmin(total_value, 900)),
+      color = "black", size = 0.7
+    ) +
+    # Show a break (gap) at 900
+    geom_hline(yintercept = 900, linetype = "dotted", color = "black", size = 0.7) +
+    geom_hline(yintercept = 910, linetype = "dotted", color = "black", size = 0.7) + # small gap for visual separation
+    # Custom fill
     scale_fill_manual(values = voc_colors, name = "Category") +
-    # Explicit x-axis scale truncated at 119
+    # X-axis going to 119 (max elapsed time)
     scale_x_continuous(
       limits = c(x_min, x_max),
       breaks = c(0, 25, 50, 75, 100, 119),
       labels = c("0", "25", "50", "75", "100", "119")
     ) +
+    # Y-axis: breaks every 100 up to 900, plus a label at the top for rounded_max
     scale_y_continuous(
-      breaks = c(0, 250, 500, 750, 1000, 1250, 1375), 
-      labels = c("0", "250", "500", "750", "1000", "1250", as.character(rounded_max)),
-      limits = c(0, 1380)
+      breaks = c(seq(0, 900, by = 100), 1010),
+      labels = c(as.character(seq(0, 900, by = 100)), as.character(rounded_max)),
+      limits = c(0, 1010)  # 900 for the lower part, 100 for the gap, 10 extra for visual space
     ) +
     labs(title = group_name) +
     theme_bw() +
     theme(
-      # Increase plot title size to 16
       plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
-      # Increase axis text size
       axis.text.x = element_text(size = 14),
       axis.text.y = element_text(size = 14),
-      # Increase axis title size
       axis.title.x = element_text(size = 16),
       axis.title.y = element_text(size = 16),
       legend.position = "none",
@@ -426,7 +431,7 @@ for (i in seq_along(group_names)) {
 # Combine all plots
 final_plot <- wrap_plots(plot_list, ncol = 2) +
   plot_layout(guides = "collect") & 
-  theme(
+  ggplot2::theme(
     legend.position = "bottom",
     # Increase legend text and title size
     legend.text = element_text(size = 16),
