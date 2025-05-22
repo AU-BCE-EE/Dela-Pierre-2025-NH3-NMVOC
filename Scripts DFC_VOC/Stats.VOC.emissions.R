@@ -44,7 +44,7 @@ anova(model_levene_2)
 # perform  # Welch t-test
 t.test(total_cum~ group, data = filtered_data_2)
 # extract the means
-means_2 <- emmeans(model_2, ~ treatment)
+means_2 <- emmeans(model_2, ~ group)
 
 
 
