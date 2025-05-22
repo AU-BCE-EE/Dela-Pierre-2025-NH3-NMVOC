@@ -285,8 +285,8 @@ Category <- c(
 # Define color palette for the categories
 voc_colors <- c(
   "Carboxylic Acids" = "#4e79a7",
-  "Volatile Sulfur Compounds (VSC)" = "#f28e2b",
-  "Phenols" = "#e15759",
+  "Volatile Sulfur Compounds (VSC)" = "#d62728",
+  "Phenols" = "#f28e2b",
   "Other" = "#76b7b2",
   "Indole" = "#59a14f"
 )
@@ -325,8 +325,8 @@ total_OAV <- OAV_long_filtered %>%
   group_by(group, elapsed_time) %>%
   summarize(total_value = sum(value, na.rm = TRUE), .groups = "drop")
 
-# Function to create a broken axis plot with no gap
-create_broken_axis_plot <- function(group_name, show_x_title = FALSE, show_y_title = FALSE) {
+# Function to create a broken axis plot with customizable breaking point
+create_broken_axis_plot <- function(group_name, show_x_title = FALSE, show_y_title = FALSE, break_at = 500) {
   # Filter data for this group
   group_data <- OAV_long_filtered %>% filter(group == group_name)
   group_peaks <- vsc_peak_data_filtered %>% filter(group == group_name)
@@ -336,55 +336,67 @@ create_broken_axis_plot <- function(group_name, show_x_title = FALSE, show_y_tit
   max_peak <- max(group_peaks$value, na.rm = TRUE)
   rounded_max <- ceiling(max_peak/1000)*1000
   
+  # Override break point for High acid group
+  if(group_name == "High acid") {
+    break_at <- 900
+  }
+  
+  # Define y-axis breaks and labels based on breaking point
+  if(break_at == 500) {
+    y_breaks <- c(0, 250, 500, 625)
+    y_labels <- c("0", "250", "500", as.character(rounded_max))
+  } else { # For High acid with break_at = 900
+    y_breaks <- c(0, 300, 600, 900, 1025)
+    y_labels <- c("0", "300", "600", "900", as.character(rounded_max))
+  }
+  
   # Get x-axis range for consistent alignment
   x_min <- 0  # Start from 0
   x_max <- max_x  # Use 119 as maximum
   
   # Create a single plot with manipulated coordinates
   p <- ggplot() +
-    # Add stacked areas for lower part (up to 1250 now)
+    # Add stacked areas for lower part (up to the breaking point)
     geom_area(data = group_data, 
-              aes(x = elapsed_time, y = pmin(value, 1250), fill = category),
-              alpha = 0.8) +
-    # Add VSC peaks for lower part (up to 1250)
+              aes(x = elapsed_time, y = pmin(value, break_at), fill = category),
+              alpha = 1) +
+    # Add VSC peaks for lower part
     geom_linerange(data = group_peaks,
-                   aes(x = elapsed_time, ymin = 0, ymax = pmin(value, 1250)),
-                   color = "#f28e2b", size = 0.5) +
-    # Add VSC peaks for upper part (above 1250)
-    geom_linerange(data = group_peaks %>% filter(value > 1250),
+                   aes(x = elapsed_time, ymin = 0, ymax = pmin(value, break_at)),
+                   color = "#d62728", size = 0.5) +
+    # Add VSC peaks for upper part (above breaking point)
+    geom_linerange(data = group_peaks %>% filter(value > break_at),
                    aes(x = elapsed_time, 
-                       ymin = 1250,
-                       ymax = 1250 + (value - 1250) / (rounded_max - 1250) * 125),
-                   color = "#f28e2b", size = 0.5) +
+                       ymin = break_at,
+                       ymax = break_at + (value - break_at) / (rounded_max - break_at) * 125),
+                   color = "#d62728", size = 0.5) +
     # Add total OAV line on top of stacked areas
     geom_line(data = group_totals,
-              aes(x = elapsed_time, y = pmin(total_value, 1250)),
+              aes(x = elapsed_time, y = pmin(total_value, break_at)),
               color = "black", size = 0.7) +
-    # Add break lines at 1250
-    geom_hline(yintercept = 1250, linetype = "dotted", color = "black", size = 0.7) +
-    geom_hline(yintercept = 1256, linetype = "dotted", color = "black", size = 0.7) +
+    # Add break lines at the breaking point
+    geom_hline(yintercept = break_at, linetype = "dotted", color = "black", size = 0.7) +
+    geom_hline(yintercept = break_at + 6, linetype = "dotted", color = "black", size = 0.7) +
     # Custom scale specifications
     scale_fill_manual(values = voc_colors, name = "Category") +
-    # Explicit x-axis scale truncated at 119
+    # Explicit x-axis scale with time formatting from citation
     scale_x_continuous(
       limits = c(x_min, x_max),
-      breaks = c(0, 25, 50, 75, 100, 119),
-      labels = c("0", "25", "50", "75", "100", "119")
+      breaks = c(0, 24, 48, 72, 96, 119),
+      labels = c("0", "24", "48", "72", "96", "119")
     ) +
+    # Use custom y-axis breaks and labels
     scale_y_continuous(
-      breaks = c(0, 250, 500, 750, 1000, 1250, 1375), 
-      labels = c("0", "250", "500", "750", "1000", "1250", as.character(rounded_max)),
-      limits = c(0, 1380)
+      breaks = y_breaks, 
+      labels = y_labels,
+      limits = c(0, break_at + 130)
     ) +
     labs(title = group_name) +
     theme_bw() +
     theme(
-      # Increase plot title size to 16
       plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
-      # Increase axis text size
       axis.text.x = element_text(size = 14),
       axis.text.y = element_text(size = 14),
-      # Increase axis title size
       axis.title.x = element_text(size = 16),
       axis.title.y = element_text(size = 16),
       legend.position = "none",
@@ -398,7 +410,7 @@ create_broken_axis_plot <- function(group_name, show_x_title = FALSE, show_y_tit
     p <- p + theme(axis.title.x = element_blank())
   }
   
-  # Add y-axis title only for left column plots (High acid and Medium acid)
+  # Add y-axis title only for left column plots
   if (show_y_title) {
     p <- p + labs(y = "OAV")
   } else {
@@ -407,8 +419,7 @@ create_broken_axis_plot <- function(group_name, show_x_title = FALSE, show_y_tit
   
   return(p)
 }
-
-# Create plots for each group
+# Create plots for each group with appropriate breaking points
 group_names <- unique(OAV_long_filtered$group)
 
 # Create plots with appropriate axis titles
@@ -416,8 +427,9 @@ plot_list <- list()
 for (i in seq_along(group_names)) {
   # Show x-axis title only for plots in bottom row
   show_x_title <- (i >= 3)
-  # Show y-axis title only for plots in left column (High acid and Medium acid)
-  show_y_title <- (i %% 2 == 1)  # Odd indices (1, 3) are left column
+  # Show y-axis title only for plots in left column
+  show_y_title <- (i %% 2 == 1)
+  # Default breaking point is 500, but High acid will override to 900 in the function
   plot_list[[i]] <- create_broken_axis_plot(group_names[i], show_x_title, show_y_title)
 }
 
@@ -426,7 +438,6 @@ final_plot <- wrap_plots(plot_list, ncol = 2) +
   plot_layout(guides = "collect") & 
   theme(
     legend.position = "bottom",
-    # Increase legend text and title size
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 16)
   )
