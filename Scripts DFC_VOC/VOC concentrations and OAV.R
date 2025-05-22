@@ -59,7 +59,7 @@ data_with_cycles <- dat %>%
     valve_transition = (valve_id > next_valve_id & next_valve_id == 1),
     cycle_number = cumsum(valve_transition) + 1
   ) %>%
-  select(-valve_id, -next_valve_id, -valve_transition) %>%
+  dplyr::select(-valve_id, -next_valve_id, -valve_transition) %>%
   # Calculate elapsed time in same step
   group_by(valve) %>%
   mutate(elapsed_time = round(as.numeric(difftime(date.time, min(date.time), units = 'hour')))) %>%
@@ -71,8 +71,8 @@ last_30s_data <- data_with_cycles %>%
   group_by(valve, cycle_number) %>%
   mutate(max_time = max(date.time)) %>%
   filter(date.time >= (max_time - seconds(30))) %>%
-  select(-max_time) %>%
-  select(valve, cycle_number, date.time, group, treatment, elapsed_time, all_of(compounds)) %>%
+  dplyr::select(-max_time) %>%
+  dplyr::select(valve, cycle_number, date.time, group, treatment, elapsed_time, all_of(compounds)) %>%
   ungroup()
 
 # Calculate 30s averages (the average of the last 30 s measurements for each compound)
@@ -109,7 +109,7 @@ corrected_averages <- valve_30s_averages %>%
     },
     .names = "{sub('_avg_30s$', '_corrected', .col)}"
   )) %>%
-  select(
+  dplyr::select(
     valve, cycle_number, group, treatment, elapsed_time,
     start_time, end_time,
     ends_with("_avg_30s"), ends_with("_corrected")
@@ -123,7 +123,7 @@ cycle1_data <- data_with_cycles %>%
 #  Extract background values for cycle 1
 cycle1_bg_values <- background_averages %>% 
   filter(cycle_number == 1) %>%
-  select(H2S_avg_30s_bg, dimethyl_sulfide_avg_30s_bg, methanthiol_avg_30s_bg)
+  dplyr::select(H2S_avg_30s_bg, dimethyl_sulfide_avg_30s_bg, methanthiol_avg_30s_bg)
 
 # Store background values in named vector
 vsc_bg_values <- c(
@@ -150,7 +150,7 @@ cycle1_corrected <- cycle1_corrected %>%
 
 # create the dataset
 vsc_only <- cycle1_corrected %>%
-  select(
+  dplyr::select(
     valve, treatment, group, cycle_number, date.time,
     H2S, dimethyl_sulfide, methanthiol,
     H2S_corrected, dimethyl_sulfide_corrected, methanthiol_corrected,
@@ -196,7 +196,7 @@ OAV <- corrected_averages %>%
       .names = "OAV_{compound_mapping[sub('_corrected$', '_avg_30s', .col)]}"
     )
   ) %>%
-  select(
+  dplyr::select(
     valve, cycle_number, treatment, group, elapsed_time, end_time,
     starts_with("OAV_")
   ) %>%
@@ -213,7 +213,7 @@ OAV <- corrected_averages %>%
 cycle1_data <- data_with_cycles %>% filter(cycle_number == 1)
 cycle1_bg_values <- background_averages %>% 
   filter(cycle_number == 1) %>%
-  select(paste0(vsc_compounds, "_avg_30s_bg"))
+  dplyr::select(paste0(vsc_compounds, "_avg_30s_bg"))
 
 # Extract VSC background values for cycle 1
 vsc_bg_values <- c(
@@ -259,7 +259,7 @@ vsc_peak_data <- avg_vsc_peaks %>%
     category = "Volatile Sulfur Compounds (VSC)",
     value = mean_VSC_OAV
   ) %>%
-  select(group, elapsed_time, category, value)
+  dplyr::select(group, elapsed_time, category, value)
 
 # ======== DATA FOR VISUALIZATION ========
 # Define VOC categories mapping
