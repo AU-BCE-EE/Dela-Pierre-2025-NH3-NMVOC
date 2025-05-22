@@ -51,6 +51,10 @@ dt$valve<-dt$id
 # Remove duplicate Cycle.number rows
 dt <- dt %>%
   distinct(`Cycle number`, .keep_all = TRUE)
+#keep measurements from the start of the experiment
+dt <- dt %>%    
+  filter(date.time >= ymd_hms("2024-09-18 12:32:02")) %>%
+  mutate(valve = as.numeric(valve))
 View(dt)
 #save the file, for some reason if I save as a csv and read it in again R rounds the time to the minutes instead of seconds
 write.table(dt, "raw.ptrms.valve.txt", row.names = F, sep=",")
