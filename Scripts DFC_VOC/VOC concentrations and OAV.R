@@ -15,10 +15,8 @@ library(scales)# For combining plots
 OTV <- read_excel("../Flavia_VOC_DFC_data/OTV.xlsx", sheet = "Sheet2") # OTV file OTV.xlsx find this in the Flavia_VOC_DFC_data folder
 
 dt <- read_csv("../Flavia_VOC_DFC_data/raw.ptrms.valves.txt") #dt is the dataset created in the PTRMS valve assignment script
-# filter for exact starting time
-dat <- dt %>%    
-  filter(date.time >= ymd_hms("2024-09-18 12:32:02")) %>%
-  mutate(valve = as.numeric(valve))
+
+
 
 # Groups and treatment assignment
 dat <- dat %>%
