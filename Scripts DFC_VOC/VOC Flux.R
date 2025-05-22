@@ -199,8 +199,8 @@ compound_categories <- tibble(
 # Define color palette 
 voc_colors <- c(
   "Carboxylic Acids" = "#4e79a7",
-  "Volatile Sulfur Compounds (VSC)" = "#f28e2b",
-  "Phenols" = "#e15759",
+  "Volatile Sulfur Compounds (VSC)" = "#d62728",
+  "Phenols" = "#f28e2b",
   "Other" = "#76b7b2",
   "Indole" = "#59a14f"
 )
