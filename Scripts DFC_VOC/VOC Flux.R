@@ -390,7 +390,9 @@ group_totals <- group_emissions %>%
 ggplot(category_summary, 
        aes(x = group, y = category_total, fill = category)) +
   geom_col() +
-  geom_text(aes(label = sprintf("%.1f%%", category_percent)),
+  # Only show label if category represents at least 10% of the total
+  geom_text(data = category_summary %>% filter(category_percent >= 10),
+            aes(label = sprintf("%.1f%%", category_percent)),
             position = position_stack(vjust = 0.5),
             color = "white", fontface = "bold") +
   scale_fill_manual(values = voc_colors) +
