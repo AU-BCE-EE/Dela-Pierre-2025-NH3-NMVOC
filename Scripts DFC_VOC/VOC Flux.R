@@ -406,7 +406,7 @@ ggplot(category_summary,
 # ========== Create visualization ==========
 # Create stacked area plot
 p_publication <- ggplot(flux_time_series, aes(x = elapsed_time, y = mean_flux, fill = category)) +
-  geom_area(position = "stack", alpha = 0.6) +
+  geom_area(position = "stack", alpha = 1) +
   # Add total flux line
   geom_line(data = flux_time_series, aes(x = elapsed_time, y = total_flux, group = group), 
             color = "black", size = 0.5, inherit.aes = FALSE) +
