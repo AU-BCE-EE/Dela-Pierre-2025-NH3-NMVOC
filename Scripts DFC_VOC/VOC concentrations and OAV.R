@@ -14,7 +14,7 @@ library(scales)# For combining plots
 # Import OTV values and corrected concentrations
 OTV <- read_excel("../Flavia_VOC_DFC_data/OTV.xlsx", sheet = "Sheet2") # OTV file OTV.xlsx find this in the Flavia_VOC_DFC_data folder
 
-dt <- read_csv("../Flavia_VOC_DFC_data/raw.ptrms.valves.txt") #dt is the dataset created in the PTRMS valve assignment script
+dt <- read_csv("../Flavia_VOC_DFC_data/raw.ptrms.valve.txt") #dt is the dataset created in the PTRMS valve assignment script
 
 
 
