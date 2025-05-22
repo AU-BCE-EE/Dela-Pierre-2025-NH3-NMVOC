@@ -106,7 +106,7 @@ for(col in corrected_cols) {
 
 
 final_dat <- dat %>%
-  select(
+  dplyr::select(
     # Time information
     contains("time"), contains("date"),
     
@@ -164,7 +164,7 @@ for(col in corrected_cols) {
 
 
 final_vsc_ini <- vsc_ini %>%
-  select(
+  dplyr::select(
     # Time information
     contains("time"), contains("date"),
     
@@ -211,8 +211,8 @@ voc_colors <- c(
 # ========== Prepare data for visualization ==========
 # Gather flux data by category, accounting for valve replicates
 flux_time_series <- dat %>%
-  # Select relevant columns
-  select(elapsed_time, group, valve, ends_with("_flux_mg")) %>%
+  # dplyr::select relevant columns
+  dplyr::select(elapsed_time, group, valve, ends_with("_flux_mg")) %>%
   
   # Convert to long format
   pivot_longer(
@@ -307,17 +307,17 @@ final_emissions <- dat %>%
   # Group by valve and get the row with elapsed_time 119
   group_by(valve) %>%
   filter(elapsed_time == 119) %>%
-  select(group, valve, elapsed_time, all_of(cum_cols))%>%
+  dplyr::select(group, valve, elapsed_time, all_of(cum_cols))%>%
          mutate(total_cum = rowSums(across(all_of(cum_cols)), na.rm = TRUE)) %>%
   ungroup()
 
 # ========== ADD CUMULATIVE EMISSIONS OF THE VSC INITIAL MEASUREMENTS TO THE CUMULATIVE EMISSIONS AT TIME 119 ==========
-#Select relevant cumulative VSCs from vsc_ini
+#dplyr::select relevant cumulative VSCs from vsc_ini
 vsc_cum_add <- vsc_ini %>%
   group_by(valve) %>%
   filter(elapsed_time_sec == max(elapsed_time_sec, na.rm = TRUE)) %>%
   ungroup() %>%
-  select(valve, cum.H2S, cum.dimethyl_sulfide, cum.methanthiol)
+  dplyr::select(valve, cum.H2S, cum.dimethyl_sulfide, cum.methanthiol)
 
 
 # Add these to final_emissions by valve
@@ -328,7 +328,7 @@ final_emissions <- final_emissions %>%
     cum.dimethyl_sulfide = cum.dimethyl_sulfide + cum.dimethyl_sulfide.vsc_ini,
     cum.methanthiol = cum.methanthiol + cum.methanthiol.vsc_ini
   ) %>%
-  select(-cum.H2S.vsc_ini, -cum.dimethyl_sulfide.vsc_ini, -cum.methanthiol.vsc_ini)
+  dplyr::select(-cum.H2S.vsc_ini, -cum.dimethyl_sulfide.vsc_ini, -cum.methanthiol.vsc_ini)
 
 # Calculate group averages
 group_emissions <- final_emissions %>%
@@ -346,7 +346,7 @@ group_emissions <- final_emissions %>%
 # check the contribution of each compound to the group's total cumulative emissions
 group_contributions <- group_emissions %>%
   # Keep only group, compound columns, and total
-  select(group, all_of(cum_cols), total_emission) %>%
+  dplyr::select(group, all_of(cum_cols), total_emission) %>%
   # Convert to long format
   pivot_longer(
     cols = all_of(cum_cols),
@@ -362,7 +362,7 @@ group_contributions <- group_emissions %>%
 
 # Create summary table with absolute and percentage values
 emission_summary <- group_contributions %>%
-  select(group, compound, category, cum_emission, percent) %>%
+  dplyr::select(group, compound, category, cum_emission, percent) %>%
   mutate(
     formatted = sprintf("%.2f mg/m² (%.1f%%)", cum_emission, percent)
   ) %>%
@@ -381,7 +381,7 @@ category_summary <- group_contributions %>%
 
 # Display overall group totals
 group_totals <- group_emissions %>%
-  select(group, total_emission) %>%
+  dplyr::select(group, total_emission) %>%
   mutate(formatted = sprintf("%.2f mg/m²", total_emission))
 
 
