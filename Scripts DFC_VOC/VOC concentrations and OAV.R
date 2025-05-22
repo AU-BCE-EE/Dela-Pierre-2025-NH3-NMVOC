@@ -19,7 +19,7 @@ dt <- read_csv("../Flavia_VOC_DFC_data/raw.ptrms.valves.txt") #dt is the dataset
 
 
 # Groups and treatment assignment
-dat <- dat %>%
+dat <- dt %>%
   mutate(
     treatment = recode(valve,
                        `1` = 'Mp', `2` = '0-bp', `3` = '1.5', `4` = '2.9', `5` = 'bkg',
