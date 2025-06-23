@@ -4,7 +4,7 @@ library(multcompView)
 library(multcomp)
 library(readr)
 library(dplyr)
-#-------------cumulative NMVOCs-----------------#
+#-------------cumulative NMVOCs at elapsed_time 119 h-----------------#
 cum.voc <- read_csv("../Flavia_VOC_DFC_data/cum.voc.emis.csv")
 
 #======================= investigate if dose has some effect on cumulative emissions of NMVOC=============================
@@ -53,14 +53,14 @@ means_2 <- emmeans(model_2, ~ group)
 
 
 
-#-------------cumulative NH3-----------------#
+#-------------cumulative NH3 at elapsed_time 119 h-----------------#
 
 
 cum_NH3 <- read_delim("cum.NH3.csv", delim = ";", 
                       escape_double = FALSE, trim_ws = TRUE)
 
 
-#======================= investigate if dose has some effect on cumulative emissions of NMVOC=============================
+#======================= investigate if dose has some effect on cumulative emissions of NH3=============================
 
 # Filter out the treatment you want to exclude 
 filtered_data_NH3 <- cum_NH3[! cum_NH3$treatment == 'Machine plot DFC', ]
@@ -104,7 +104,7 @@ anova(model_levene_3)
 # extract the means
 means_3 <- emmeans(model_3, ~ treatment)
 
-#-------------OAV-------------#
+#-------------OAV over time (elpasesd_time from 0 to 119, irregular intervals)-------------#
 OAV<- read_csv("../Flavia_VOC_DFC_data/OAV.txt")
 # Filter out the treatment you want to exclude 
 filtered_data_OAV <- OAV[! OAV$group == 'Machine plot', ]
@@ -129,7 +129,7 @@ summary(lm(intercept ~ dose, data = fit.dose))
 summary(lm(slope ~ dose, data = fit.dose))
 #they don't depend on dose
 
-##########A One-Way ANOVA to compare  machine and manual application ####### 
+##########A One-Way ANOVA to compare  machine and manual application on initial (elpased_time == 0) OAV ####### 
 
 # Filter to keep only two treatments (Machine plot DFC and No acid DFC)
 filtered_data_4 <- OAV[OAV$group == 'Machine plot' | OAV$group == 'No acid', ]
