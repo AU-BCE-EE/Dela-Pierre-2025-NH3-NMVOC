@@ -20,13 +20,13 @@ filtered_data_voc$dose[filtered_data_voc$group == "No acid"] <- 0
 filtered_data_voc$dose[filtered_data_voc$group == "Low acid"] <- 2.9
 filtered_data_voc$dose[filtered_data_voc$group == "Medium acid"] <- 5.3
 filtered_data_voc$dose[filtered_data_voc$group == "High acid"] <- 10.5
-#enusre data$dose is numeric
+#ensure data$dose is numeric
 filtered_data_voc$dose <- as.numeric(filtered_data_voc$dose)
 #write the model
 model<-lm(total_cum~dose, data=filtered_data_voc )
 summary(model)
 library(olsrr)
-ols_regress(model)
+ols_regress(model)  #There is an effect: 1 incremental unit of acid gives around 230 mg m^-2 NMVOC emissions more
 # Run Levene's test  and Shapiro test
 res_abs=abs(residuals(model))
 levene<-lm(res_abs~ dose, data = filtered_data_voc)
@@ -40,7 +40,7 @@ filtered_data_2 <- cum.voc[cum.voc$group == 'Machine plot' | cum.voc$group == 'N
 # linear model cum.emis~treatment
 model_2 <- lm(total_cum ~ group, data = filtered_data_2)
 #one way ANOVA
-anova(model_2)
+anova(model_2)   #Machine application gives significantly higher cumulative NMVOCs emissions
 shapiro.test(model_2$residuals) #check normality of residuals
 filtered_data_2 <- cbind(filtered_data_2, res_abs = abs(model_2$residuals))
 model_levene_2 <- lm(res_abs ~ group, data = filtered_data_2)
@@ -73,13 +73,13 @@ filtered_data_NH3$dose[filtered_data_NH3$treatment == "No acid DFC"] <- 0
 filtered_data_NH3$dose[filtered_data_NH3$treatment == "Low acid DFC"] <- 2.9
 filtered_data_NH3$dose[filtered_data_NH3$treatment == "Medium acid DFC"] <- 5.3
 filtered_data_NH3$dose[filtered_data_NH3$treatment == "High acid DFC"] <- 10.5
-#enusre data$dose is numeric
+#ensure data$dose is numeric
 filtered_data_NH3$dose <- as.numeric(filtered_data_NH3$dose)
 #write the model
 model<-lm(cum.emis.TAN~dose, data=filtered_data_NH3 )
 summary(model)
 library(olsrr)
-ols_regress(model)
+ols_regress(model)   #no significant effect of the acid dosage is detected on NH3 cumulative emissions
 # Run Levene's test  and SHapiro test
 res_abs=abs(residuals(model))
 levene<-lm(res_abs~ dose, data = filtered_data_NH3)
@@ -93,7 +93,7 @@ filtered_data_3 <- cum_NH3[cum_NH3$treatment == 'Machine plot DFC' | cum_NH3$tre
 # linear model cum.emis~treatment
 model_3 <- lm(cum.emis.TAN ~ treatment, data = filtered_data_3)
 #one way ANOVA
-anova(model_3)
+anova(model_3) # Machine application gives significantly higher cumulative NH3 emissions
 shapiro.test(model_3$residuals) #check normality of residuals
 filtered_data_3 <- cbind(filtered_data_3, res_abs = abs(model_3$residuals))
 model_levene_3 <- lm(res_abs ~ treatment, data = filtered_data_3)
@@ -138,7 +138,7 @@ filtered_data_4 <- filtered_data_4[filtered_data_4$elapsed_time == 0, ]
 
 model_4 <- lm(total_OAV ~ group, data = filtered_data_4)
 #one way ANOVA
-anova(model_4)
+anova(model_4) #initial OAV are not affected by application method
 shapiro.test(model_4$residuals) #check normality of residuals
 filtered_data_4 <- cbind(filtered_data_4, res_abs = abs(model_4$residuals))
 model_levene_4 <- lm(res_abs ~ group, data = filtered_data_4)
