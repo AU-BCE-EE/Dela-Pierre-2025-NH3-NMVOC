@@ -444,6 +444,6 @@ final_plot <- wrap_plots(plot_list, ncol = 2) +
 
 print(final_plot)
 #save OAV, 30s background corrected averages, and VSC initial dataset
-write_csv(OAV, "OAV_fin.csv")
+write.table(OAV, "OAV.txt", row.names = F, sep=",")
 write.table(corrected_averages, "voc.30s.corrected.txt", row.names = F, sep=",")
 write.table(vsc_only, "vsc.first.minutes.txt", row.names= F, sep= ",") #need to use write.table otherwise it changes the time format
