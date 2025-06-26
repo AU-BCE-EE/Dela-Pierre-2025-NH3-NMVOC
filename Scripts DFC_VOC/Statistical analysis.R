@@ -107,8 +107,8 @@ filtered_data_OAV <- OAV[! OAV$group == 'Machine plot', ]
 filtered_data_OAV$dose <- NA  # Initialize dose column with NA
 
 # Assign dose values based on group names
-filtered_data_OAV$dose[filtered_data$group == "No acid"] <- 0
-filtered_data_OAV$dose[filtered_data$group == "Low acid"] <- 2.9
+filtered_data_OAV$dose[filtered_data_OAV$group == "No acid"] <- 0
+filtered_data_OAV$dose[filtered_data_OAV$group == "Low acid"] <- 2.9
 filtered_data_OAV$dose[filtered_data_OAV$group == "Medium acid"] <- 5.3
 filtered_data_OAV$dose[filtered_data_OAV$group == "High acid"] <- 10.5
 
