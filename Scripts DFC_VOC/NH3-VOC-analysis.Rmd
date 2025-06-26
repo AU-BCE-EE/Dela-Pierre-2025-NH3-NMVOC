@@ -1,0 +1,404 @@
+---
+title: "Analysis of Cumulative Emissions and Odor Activity Values from pig slurry"
+author: "Flavia"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: show
+    theme: flatly
+    fig_width: 10
+    fig_height: 6
+---
+
+```{r setup, include=FALSE}
+# Load required libraries
+library(emmeans)
+library(multcompView)
+library(multcomp)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(olsrr)
+library(knitr)
+
+# Set chunk options
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = "center"
+)
+```
+
+# Introduction
+
+This analysis investigates the effect of acid dose added to pig slurry (0, 2.9, 5.3, and 10.5 kg per ton of slurry) on cumulative emissions of non-methane volatile organic compounds (VOCs), ammonia (NH3), and odor activity values (OAV), measured using dynamic flux chambers (DFC). Additionally, emissions (only from untreated slurry, i.e. dose 0) were measured from a big plot where slurry was machine-applied (Machine plot), and from small plots where it was manually applied. We want to compare how application method influences our results.
+
+# Cumulative NMVOC Emissions
+
+## Data Loading and Preparation
+
+```{r load-voc-data}
+# Load cumulative VOC data
+cum.voc <- read_csv("../Flavia_VOC_DFC_data/cum.voc.emis.csv")
+
+# Show data structure
+kable(head(cum.voc), caption = "First 6 rows of cumulative VOC data")
+```
+
+```{r prepare-voc-data}
+# Filter out machine plot treatment
+filtered_data_voc <- cum.voc[!cum.voc$group == 'Machine plot', ]
+
+# Assign dose values based on group names
+doses <- c(`No acid` = 0, `Low acid` = 2.9, `Medium acid` = 5.3, `High acid` = 10.5)
+filtered_data_voc$dose <- doses[filtered_data_voc$group]
+
+# Ensure dose is numeric
+filtered_data_voc$dose <- as.numeric(filtered_data_voc$dose)
+
+# Summary of prepared data
+cat("Sample sizes by dose:\n")
+table(filtered_data_voc$dose)
+```
+
+## Dose-Response Analysis
+
+```{r voc-dose-model}
+# Fit linear model
+model <- lm(total_cum ~ dose, data = filtered_data_voc)
+
+# Model summary
+summary(model)
+
+# Detailed regression output
+ols_regress(model)
+```
+
+### Model Diagnostics
+
+```{r voc-diagnostics}
+# Levene's test for homoscedasticity
+res_abs <- abs(residuals(model))
+levene <- lm(res_abs ~ dose, data = filtered_data_voc)
+levene_result <- anova(levene)
+
+# Shapiro-Wilk test for normality
+shapiro_result <- shapiro.test(residuals(model))
+
+# Display results
+cat("Levene's Test for Homoscedasticity:\n")
+print(levene_result)
+cat("\nShapiro-Wilk Test for Normality:\n")
+print(shapiro_result)
+```
+
+### Visualization
+
+```{r voc-dose-plot, fig.cap="Cumulative VOC emissions by acid dose"}
+p1 <- ggplot(filtered_data_voc, aes(x = dose, y = total_cum, color = as.factor(dose))) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", se = TRUE, color = "black", linetype = "dashed") +
+  labs(title = "Cumulative VOC Emissions by Acid Dose",
+       x = "Acid Dose",
+       y = expression("Cumulative VOC emissions"~(mg~m^{-2})),
+       color = "Dose") +
+  theme_minimal() +
+  theme(legend.position = "right")
+
+print(p1)
+```
+
+## Machine vs Manual Application
+
+```{r voc-machine-manual}
+# Filter for comparison
+filtered_data_2 <- cum.voc[cum.voc$group %in% c('Machine plot', 'No acid'), ]
+
+# Fit model
+model_2 <- lm(total_cum ~ group, data = filtered_data_2)
+
+# ANOVA
+anova_result_2 <- anova(model_2)
+print(anova_result_2)
+
+# Diagnostics
+shapiro_2 <- shapiro.test(model_2$residuals)
+filtered_data_2$res_abs <- abs(model_2$residuals)
+levene_2 <- anova(lm(res_abs ~ group, data = filtered_data_2))
+
+cat("Normality test p-value:", shapiro_2$p.value, "\n")
+cat("Homoscedasticity test p-value:", levene_2$`Pr(>F)`[1], "\n")
+
+# Extract means
+means_2 <- emmeans(model_2, ~ group)
+print(means_2)
+```
+
+```{r voc-application-plot, fig.cap="VOC emissions: Machine vs Manual application"}
+p2 <- ggplot(filtered_data_2, aes(x = group, y = total_cum, color = group)) +
+  geom_point(size = 3, alpha = 0.7) +
+  stat_summary(fun = mean, geom = "crossbar", width = 0.5, color = "black") +
+  labs(title = "VOC Emissions: Application Method Comparison",
+       x = "Application Method",
+       y = expression("Cumulative VOC emissions"~(mg~m^{-2})),
+       color = "Group") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+print(p2)
+```
+
+# Cumulative NH3 Emissions
+
+## Data Loading and Analysis
+
+```{r load-nh3-data}
+# Load NH3 data
+cum_NH3 <- read_delim("cum.NH3.csv", delim = ";", 
+                      escape_double = FALSE, trim_ws = TRUE)
+
+# Show data structure
+kable(head(cum_NH3), caption = "First 6 rows of cumulative NH₃ data")
+```
+
+```{r prepare-nh3-data}
+# Filter and prepare data
+filtered_data_NH3 <- cum_NH3[!cum_NH3$treatment == 'Machine plot DFC', ]
+
+# Assign dose values based on treatment names
+doses_nh3 <- c(`No acid DFC` = 0, `Low acid DFC` = 2.9, 
+               `Medium acid DFC` = 5.3, `High acid DFC` = 10.5)
+filtered_data_NH3$dose <- doses_nh3[filtered_data_NH3$treatment]
+
+# Ensure dose is numeric
+filtered_data_NH3$dose <- as.numeric(filtered_data_NH3$dose)
+
+# Sample sizes
+cat("Sample sizes by dose:\n")
+table(filtered_data_NH3$dose)
+```
+
+## Dose-Response Analysis
+
+```{r nh3-dose-model}
+# Fit model
+model_nh3 <- lm(cum.emis.TAN ~ dose, data = filtered_data_NH3)
+
+# Results
+summary(model_nh3)
+ols_regress(model_nh3)
+```
+
+### Model Diagnostics
+
+```{r nh3-diagnostics}
+# Diagnostics
+res_abs_nh3 <- abs(residuals(model_nh3))
+levene_nh3 <- anova(lm(res_abs_nh3 ~ dose, data = filtered_data_NH3))
+shapiro_nh3 <- shapiro.test(residuals(model_nh3))
+
+cat("Levene's Test p-value:", levene_nh3$`Pr(>F)`[1], "\n")
+cat("Shapiro-Wilk Test p-value:", shapiro_nh3$p.value, "\n")
+```
+
+```{r nh3-dose-plot, fig.cap="Cumulative NH₃ emissions by acid dose"}
+p3 <- ggplot(filtered_data_NH3, aes(x = dose, y = cum.emis.TAN, color = as.factor(dose))) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", se = TRUE, color = "black", linetype = "dashed") +
+  labs(title = "Cumulative NH₃ Emissions by Acid Dose",
+       x = "Acid Dose",
+       y = "Cumulative NH₃ emissions (% TAN)",
+       color = "Dose") +
+  theme_minimal() +
+  theme(legend.position = "right")
+
+print(p3)
+```
+
+## Machine vs Manual Application (NH₃)
+
+```{r nh3-machine-manual}
+# Filter and analyze
+filtered_data_3 <- cum_NH3[cum_NH3$treatment %in% c('Machine plot DFC', 'No acid DFC'), ]
+
+model_3 <- lm(cum.emis.TAN ~ treatment, data = filtered_data_3)
+anova_3 <- anova(model_3)
+print(anova_3)
+
+# Diagnostics
+shapiro_3 <- shapiro.test(model_3$residuals)
+filtered_data_3$res_abs <- abs(model_3$residuals)
+levene_3 <- anova(lm(res_abs ~ treatment, data = filtered_data_3))
+
+cat("Normality test p-value:", shapiro_3$p.value, "\n")
+cat("Homoscedasticity test p-value:", levene_3$`Pr(>F)`[1], "\n")
+
+# Means
+means_3 <- emmeans(model_3, ~ treatment)
+print(means_3)
+```
+
+```{r nh3-application-plot, fig.cap="NH₃ emissions: Machine vs Manual application"}
+p4 <- ggplot(filtered_data_3, aes(x = treatment, y = cum.emis.TAN, color = treatment)) +
+  geom_point(size = 3, alpha = 0.7) +
+  stat_summary(fun = mean, geom = "crossbar", width = 0.5, color = "black") +
+  labs(title = "NH₃ Emissions: Application Method Comparison",
+       x = "Treatment",
+       y = "Cumulative NH₃ emissions (% TAN)",
+       color = "Treatment") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+print(p4)
+```
+
+# Odor Activity Values (OAV)
+
+## Data Loading and Temporal Analysis
+
+```{r load-oav-data}
+# Load OAV data
+OAV <- read_csv("../Flavia_VOC_DFC_data/OAV.txt")
+
+# Filter data
+filtered_data_OAV <- OAV[!OAV$group == 'Machine plot', ]
+
+# Assign dose values based on group names
+doses_oav <- c(`No acid` = 0, `Low acid` = 2.9, `Medium acid` = 5.3, `High acid` = 10.5)
+filtered_data_OAV$dose <- doses_oav[filtered_data_OAV$group]
+
+# Show data structure
+kable(head(filtered_data_OAV), caption = "First 6 rows of OAV data")
+```
+
+## Slope and Intercept Analysis
+
+```{r oav-slope-intercept}
+# Calculate intercept and slope for each valve
+fit <- filtered_data_OAV %>% 
+  group_by(valve) %>% 
+  summarise(
+    intercept = coef(lm(total_OAV ~ poly(elapsed_time, 1, raw = TRUE)))[1],
+    slope = coef(lm(total_OAV ~ poly(elapsed_time, 1, raw = TRUE)))[2],
+    .groups = 'drop'
+  )
+
+# Join with dose information
+fit.dose <- left_join(fit, 
+                      filtered_data_OAV %>% 
+                        select(valve, dose) %>% 
+                        distinct(), 
+                      by = "valve")
+
+# Test dose effect on intercept and slope
+intercept_model <- lm(intercept ~ dose, data = fit.dose)
+slope_model <- lm(slope ~ dose, data = fit.dose)
+
+cat("Effect of dose on intercept:\n")
+print(summary(intercept_model))
+
+cat("\nEffect of dose on slope:\n")
+print(summary(slope_model))
+```
+
+```{r oav-results-table}
+# Create summary table
+kable(fit.dose, digits = 3, 
+      caption = "Intercept and slope values by valve and dose")
+```
+
+## Temporal Visualization
+
+```{r oav-temporal-plot, fig.cap="Total OAV over time by dose treatment"}
+p5 <- ggplot(filtered_data_OAV, aes(x = elapsed_time, y = total_OAV, color = as.factor(dose))) +
+  geom_point(size = 2, alpha = 0.7) +
+  facet_wrap(~paste("Dose:", dose)) +
+  labs(title = "Total OAV by Elapsed Time, Grouped by Dose",
+       x = "Elapsed Time (minutes)",
+       y = "Total OAV",
+       color = "Dose") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+print(p5)
+```
+
+## Machine vs Manual Application (OAV)
+
+```{r oav-machine-manual}
+# Filter for time = 0 comparison
+filtered_data_4 <- OAV[OAV$group %in% c('Machine plot', 'No acid') & 
+                         OAV$elapsed_time == 0, ]
+
+if(nrow(filtered_data_4) > 0) {
+  model_4 <- lm(total_OAV ~ group, data = filtered_data_4)
+  
+  # ANOVA
+  anova_4 <- anova(model_4)
+  print(anova_4)
+  
+  # Diagnostics
+  shapiro_4 <- shapiro.test(model_4$residuals)
+  filtered_data_4$res_abs <- abs(model_4$residuals)
+  levene_4 <- anova(lm(res_abs ~ group, data = filtered_data_4))
+  
+  cat("Normality test p-value:", shapiro_4$p.value, "\n")
+  cat("Homoscedasticity test p-value:", levene_4$`Pr(>F)`[1], "\n")
+  
+  # Means
+  means_4 <- emmeans(model_4, ~ group)
+  print(means_4)
+} else {
+  cat("No data available for time = 0 comparison\n")
+}
+```
+
+```{r oav-application-plot, fig.cap="Initial OAV: Machine vs Manual application"}
+if(exists("filtered_data_4") && nrow(filtered_data_4) > 0) {
+  p6 <- ggplot(filtered_data_4, aes(x = group, y = total_OAV, color = group)) +
+    geom_point(size = 3, alpha = 0.7) +
+    stat_summary(fun = mean, geom = "crossbar", width = 0.5, color = "black") +
+    labs(title = "Initial OAV: Application Method Comparison",
+         x = "Application Method",
+         y = "Total OAV",
+         color = "Group") +
+    theme_minimal() +
+    theme(legend.position = "none")
+  
+  print(p6)
+}
+```
+
+# Summary
+
+## Key Findings
+
+1. **VOC Emissions**: 
+   - Dose effect: `r if(exists("model")) paste("p =", round(summary(model)$coefficients[2,4], 4)) else "Not calculated"`
+   - Machine vs Manual: `r if(exists("anova_result_2")) paste("p =", round(anova_result_2$"Pr(>F)"[1], 4)) else "Not calculated"`
+
+2. **NH₃ Emissions**:
+   - Dose effect: `r if(exists("model_nh3")) paste("p =", round(summary(model_nh3)$coefficients[2,4], 4)) else "Not calculated"`
+   - Machine vs Manual: `r if(exists("anova_3")) paste("p =", round(anova_3$"Pr(>F)"[1], 4)) else "Not calculated"`
+
+3. **OAV Analysis**:
+   - Dose effect on intercept: `r if(exists("intercept_model")) paste("p =", round(summary(intercept_model)$coefficients[2,4], 4)) else "Not calculated"`
+   - Dose effect on slope: `r if(exists("slope_model")) paste("p =", round(summary(slope_model)$coefficients[2,4], 4)) else "Not calculated"`
+
+## Conclusions
+
+Based on the analysis, we can conclude that:
+
+1. One incremental unit of acid significantly increased cumulative VOC emissions (after 119 h) by ~ 230 mg m^-2^
+2. Machine application caused significantly higher cumulative VOC emissions (after 119 h) from untreated pig slurry (Machine plot) compared to manual application (0-DFC)
+3. Acid did not have an effect on cumulative NH₃ emissions % TAN (after 119 h)
+4. Machine application caused significantly higher cumulative NH₃ emissions (after 119 h) from untreated pig slurry (Machine plot) compared to manual application (0-DFC)
+5. Acid did not have an effect on OAV, although I suspect it is because linear model may be not efficient in capturing the "trend". In fact, we have 0, 2.9, and 5.3 having the same OAV, and only 10.5 shows obvious higher OAV (at least at time 0)
+6. No difference in OAV for Machine and Manual application of Raw pig slurry.
+
+---
+
+*Analysis completed on `r Sys.Date()`*
