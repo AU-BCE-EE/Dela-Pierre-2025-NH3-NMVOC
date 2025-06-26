@@ -12,18 +12,12 @@ cum.voc <- read_csv("../Flavia_VOC_DFC_data/cum.voc.emis.csv")
 # Filter out the treatment you want to exclude 
 filtered_data_voc <- cum.voc[! cum.voc$group == 'Machine plot', ]
 
-# Add dose column based on group names
-filtered_data_voc$dose <- NA  # Initialize dose column with NA
-
 # Assign dose values based on group names
-filtered_data_voc$dose[filtered_data_voc$group == "No acid"] <- 0
-filtered_data_voc$dose[filtered_data_voc$group == "Low acid"] <- 2.9
-filtered_data_voc$dose[filtered_data_voc$group == "Medium acid"] <- 5.3
-filtered_data_voc$dose[filtered_data_voc$group == "High acid"] <- 10.5
-#ensure data$dose is numeric
-filtered_data_voc$dose <- as.numeric(filtered_data_voc$dose)
+doses <- c(`No acid` = 0, `Low acid` = 2.9, `Medium acid` = 5.3, `High acid` = 10.5)
+filtered_data_voc$dose <- doses[filtered_data_voc$group]
+
 #write the model
-model<-lm(total_cum~dose, data=filtered_data_voc )
+model <- lm(total_cum ~ dose, data = filtered_data_voc )
 summary(model)
 library(olsrr)
 ols_regress(model)  #There is an effect: 1 incremental unit of acid gives around 230 mg m^-2 NMVOC emissions more
