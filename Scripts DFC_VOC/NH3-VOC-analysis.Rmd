@@ -392,7 +392,7 @@ if(exists("filtered_data_4") && nrow(filtered_data_4) > 0) {
 
 Based on the analysis, we can conclude that:
 
-1. One incremental unit of acid significantly increased cumulative VOC emissions (after 119 h) by ~ 230 mg m^-2^
+1. One incremental unit of acid significantly increased cumulative VOC emissions (after 119 h) by ~ 240 mg m^-2^
 2. Machine application caused significantly higher cumulative VOC emissions (after 119 h) from untreated pig slurry (Machine plot) compared to manual application (0-DFC)
 3. Acid did not have an effect on cumulative NH₃ emissions % TAN (after 119 h)
 4. Machine application caused significantly higher cumulative NH₃ emissions (after 119 h) from untreated pig slurry (Machine plot) compared to manual application (0-DFC)
