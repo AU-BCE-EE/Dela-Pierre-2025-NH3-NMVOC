@@ -17,8 +17,33 @@ a<-readCRDS("../DFC/Data/input data/NH3",
               mult = T, 
               tz = "UTC", 
               rm = F) #Picarro data
-# PTRMS data
-dt<-read_xlsx("../Flavia_VOC_DFC_data/ptrms.xlsx") #PTRMS data, file ptrms.xlsx find this in the Flavia_VOC_DFC_data folder, concentrations already corrected for k-values
+#PTRMs data
+dt <- read_csv("../Flavia_VOC_DFC_data/VOC_DFC_ppb.txt")
+#rename for consistency with other scripts
+dt<- dt %>% rename(
+  methanol = m_z_33_methanol,
+  H2S = `m_z_35_H2S`,
+  X4.Methylphenol = `m_z_109_4_Methylphenol`,
+  acetic_acid =`m_z_61_43_acetic_acid`,
+  butanoic_acid = `m_z_71_89_butanoic_acid`,
+  pentanoic_acid =`m_z_85_103_pentanoic_acid`,
+  propanoic_acid = `m_z_57_75_propanoic_acid`,
+  acetladheyde = m_z_45_00_acetaldheyde,
+  formic_acid = m_z_47_00_formic_acid,
+  methanthiol = m_z_49_00_methanthiol,
+  acetone = m_z_59_00_acetone,
+  trimethylamine = m_z_60_00_trimethylamine,
+  dimethyl_sulfide = m_z_63_00_dimethyl_sulfide,
+  isopren = m_z_69_00_isopren,
+  butanone = m_z_73_00_2_butanone,
+  benzen = m_z_79_00_benzen,
+  butandion = m_z_87_00_2_3_butandion,
+  phenol = m_z_95_00_phenol,
+  X4_ethyl_phenol = m_z_123_00_4_ethyl_phenol,
+  methyl_indole = m_z_132_00_3_methyl_indole
+)
+#change column time name for consistency with Picarro
+names(dt)[names(dt) == "Absolute Time"] <- "date.time"
 #create a date&time column for Picarro data
 a$date.time <- paste(a$DATE, a$TIME)
 a$date.time<-ymd_hms(a$date.time)
@@ -51,11 +76,15 @@ dt$valve<-dt$id
 # Remove duplicate Cycle.number rows
 dt <- dt %>%
   distinct(`Cycle number`, .keep_all = TRUE)
+names(dt)
 #keep measurements from the start of the experiment
 dt <- dt %>%    
   filter(date.time >= ymd_hms("2024-09-18 12:32:02")) %>%
   mutate(valve = as.numeric(valve))
-View(dt)
+names(dt)
+#don't keep benzene column
+dt$benzen <- NULL
+
 #save the file, for some reason if I save as a csv and read it in again R rounds the time to the minutes instead of seconds
 write.table(dt, "raw.ptrms.valve.txt", row.names = F, sep=",")
 
