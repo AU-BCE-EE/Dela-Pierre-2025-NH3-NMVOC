@@ -79,7 +79,7 @@ dt <- dt %>%
 names(dt)
 #keep measurements from the start of the experiment
 dt <- dt %>%    
-  filter(date.time >= ymd_hms("2024-09-18 12:32:02")) %>%
+  filter(date.time >= ymd_hms("2024-09-18 12:31:48")) %>%
   mutate(valve = as.numeric(valve))
 names(dt)
 #don't keep benzene column
