@@ -189,17 +189,17 @@ compound_categories <- tibble(
     "methanol", "acetladheyde", "acetone", "trimethylamine", "isopren", "butanone", "butandion"
   ),
   category = c(
-    "Carboxylic Acids", "Carboxylic Acids", "Carboxylic Acids", "Carboxylic Acids", "Carboxylic Acids",
+    "VFA", "VFA", "VFA", "VFA", "VFA",
     "Indole", "Phenols", "Phenols", "Phenols",
-    "Volatile Sulfur Compounds (VSC)", "Volatile Sulfur Compounds (VSC)", "Volatile Sulfur Compounds (VSC)",
+    "VSC", "VSC", "VSC",
     "Other", "Other", "Other", "Other", "Other", "Other", "Other"
   )
 )
 
 # Define color palette 
 voc_colors <- c(
-  "Carboxylic Acids" = "#4e79a7",
-  "Volatile Sulfur Compounds (VSC)" = "#d62728",
+  "VFA" = "#4e79a7",
+  "VSC" = "#d62728",
   "Phenols" = "#f28e2b",
   "Other" = "#76b7b2",
   "Indole" = "#59a14f"
@@ -271,7 +271,7 @@ for (flux_col in flux_cols) {
     by = dat$valve,           # Group by valve
     method = 'trap'           # Use trapezoidal method
   )
- 
+  
   
 }
 names(flux_time_series)
@@ -308,7 +308,7 @@ final_emissions <- dat %>%
   group_by(valve) %>%
   filter(elapsed_time == 119) %>%
   dplyr::select(group, valve, elapsed_time, all_of(cum_cols))%>%
-         mutate(total_cum = rowSums(across(all_of(cum_cols)), na.rm = TRUE)) %>%
+  mutate(total_cum = rowSums(across(all_of(cum_cols)), na.rm = TRUE)) %>%
   ungroup()
 
 # ========== ADD CUMULATIVE EMISSIONS OF THE VSC INITIAL MEASUREMENTS TO THE CUMULATIVE EMISSIONS AT TIME 119 ==========
@@ -386,66 +386,59 @@ group_totals <- group_emissions %>%
 
 
 
-# Create visualization of category contributions
-ggplot(category_summary, 
-       aes(x = group, y = category_total, fill = category)) +
+# Set the category order before plotting
+category_summary_renamed <- category_summary %>%
+  filter(group != "Machine plot") %>%  # Remove Machine plot
+  mutate(
+    group_renamed = case_when(
+      group == "No acid" ~ "0-DFC",
+      group == "Low acid" ~ "2.9-DFC", 
+      group == "Medium acid" ~ "5.3-DFC",
+      group == "High acid" ~ "10.5-DFC",
+      TRUE ~ group  # Keep original if no match
+    ),
+    # Set factor levels for correct ordering
+    group_renamed = factor(group_renamed, 
+                           levels = c("0-DFC", "2.9-DFC", "5.3-DFC", "10.5-DFC")),
+    # Set category order
+    category = factor(category, 
+                      levels = c("VFA","Other", "VSC", "Phenols", "Indole"))
+  )
+
+# Create visualization with ordered categories
+perc<-ggplot(category_summary_renamed, 
+       aes(x = group_renamed, y = category_total, fill = category)) +
   geom_col() +
   # Only show label if category represents at least 10% of the total
-  geom_text(data = category_summary %>% filter(category_percent >= 10),
+  geom_text(data = category_summary_renamed %>% filter(category_percent >= 10),
             aes(label = sprintf("%.1f%%", category_percent)),
             position = position_stack(vjust = 0.5),
-            color = "white", fontface = "bold") +
-  scale_fill_manual(values = voc_colors) +
-  labs(
-    title = "Cumulative Emissions at 119 Hours by Group and Category",
-    x = "Treatment Group",
-    y = expression(Cumulative~Emission~(mg/m^2)),
-    fill = "VOC Category"
-  ) +
-  theme_bw() +
-  theme(legend.position = "bottom")
-
-# ========== Create visualization ==========
-# Create stacked area plot
-p_publication <- ggplot(flux_time_series, aes(x = elapsed_time, y = mean_flux, fill = category)) +
-  geom_area(position = "stack", alpha = 1) +
-  # Add total flux line
-  geom_line(data = flux_time_series, aes(x = elapsed_time, y = total_flux, group = group), 
-            color = "black", size = 0.5, inherit.aes = FALSE) +
-  scale_fill_manual(values = voc_colors) +
-  facet_wrap(~group, scales = "free_y") +
-  # Replace xlim() with scale_x_continuous to set explicit breaks
-  scale_x_continuous(limits = c(0, 119), 
-                     breaks = c(0, 24, 48, 72, 96, 119),
-                     expand = c(0, 0)) +  # Remove padding for exact limits
+            color = "white", fontface = "bold", size=7) +
+  scale_fill_manual(values = voc_colors,
+                    breaks = c("Other", "VFA", "VSC", "Phenols", "Indole")) +  # Order legend too
   labs(
     title = "",
-    x = "Time from slurry application (hours)",
-    y = expression(Flux~(mg~m^{-2}~min^{-1})),
-    fill = "VOC Category"
+    x = "Treatment Group",
+    y = expression("Cumulative Emission (mg " * m^{-2} * ")"),
+    fill = "Category"
   ) +
   theme_bw() +
   theme(
     legend.position = "bottom",
-    panel.grid.minor = element_blank(),
-    strip.background = element_blank(),
-    strip.text = element_text(face = "bold", size = 12, margin = margin(b = 5, t = 5)),
-    plot.title = element_text(hjust = 0.5, face = "bold"),
-    axis.title = element_text(face = "bold"),
-    legend.title = element_text(face = "bold")
+    plot.title = element_text(size = 16, face = "bold"),      # Larger title
+    axis.title.x = element_text(size = 16, face = "bold"),    # Larger x-axis title
+    axis.title.y = element_text(size = 16, face = "bold"),    # Larger y-axis title
+    axis.text.x = element_text(size = 16),                    # Larger x-axis labels
+    axis.text.y = element_text(size = 16),                    # Larger y-axis labels
+    legend.title = element_text(size = 16, face = "bold"),    # Larger legend title
+    legend.text = element_text(size = 16)                     # Larger legend text
   )
-# Display plot
-print(p_publication)
-
-# Save plots and data
-ggsave("voc_flux_by_category.png", p_publication, width = 12, height = 8, dpi = 300)
 #save flux
 write_csv(final_dat, "flux_voc_dfc.csv")
 #save cumulative emissions
 write_csv(final_emissions, "cum.voc.emis.csv")
-
-
-
+#save plot
+ggsave("percentage.plot.png", perc, height = 10, width = 12, dpi=300, bg="white")
 
 
 
