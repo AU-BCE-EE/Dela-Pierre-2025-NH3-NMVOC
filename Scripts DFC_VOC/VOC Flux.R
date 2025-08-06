@@ -1,4 +1,4 @@
-
+library(dplyr)
 library(tidyverse)     
 library(lubridate)     
 library(patchwork)     
@@ -439,6 +439,7 @@ write_csv(final_dat, "flux_voc_dfc.csv")
 write_csv(final_emissions, "cum.voc.emis.csv")
 #save plot
 ggsave("percentage.plot.png", perc, height = 10, width = 12, dpi=300, bg="white")
+
 
 
 
