@@ -281,8 +281,8 @@ kable(head(filtered_data_OAV), caption = "First 6 rows of OAV data")
 fit <- filtered_data_OAV %>% 
   group_by(valve) %>% 
   summarise(
-    intercept = coef(lm(total_OAV ~ poly(elapsed_time, 1, raw = TRUE)))[1],
-    slope = coef(lm(total_OAV ~ poly(elapsed_time, 1, raw = TRUE)))[2],
+    intercept = coef(lm(total_OAV ~ elapsed_time, subset = elapsed_time < 5))[1],
+    slope = coef(lm(total_OAV ~ elapsed_time, subset = elapsed_time < 5))[2],
     .groups = 'drop'
   )
 
@@ -402,3 +402,4 @@ Based on the analysis, we can conclude that:
 ---
 
 *Analysis completed on `r Sys.Date()`*
+
