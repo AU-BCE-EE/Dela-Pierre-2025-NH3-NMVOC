@@ -176,7 +176,7 @@ group1_data <- filtered_Flux_odors_long %>%
 
 # Flux plot
 flux_plot <- ggplot(group1_data, aes(x = hours, y = Flux/1000*60, color = Category)) + 
-  geom_line(size = 0.5) + geom_point(size=1.5)+
+  geom_line(size = 0.5) +
   facet_wrap(~Compound, ncol = 3, scales = "free_y", strip.position = "top") +
   scale_color_manual(values = category_colors) +
   scale_x_continuous(
