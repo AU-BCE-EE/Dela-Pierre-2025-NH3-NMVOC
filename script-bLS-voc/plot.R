@@ -176,7 +176,7 @@ group1_data <- filtered_Flux_odors_long %>%
 
 # Flux plot
 flux_plot <- ggplot(group1_data, aes(x = hours, y = Flux/1000*60, color = Category)) + 
-  geom_line(size = 0.5) +
+  geom_line(size = 1) +
   facet_wrap(~Compound, ncol = 3, scales = "free_y", strip.position = "top") +
   scale_color_manual(values = category_colors) +
   scale_x_continuous(
@@ -201,7 +201,7 @@ flux_plot <- ggplot(group1_data, aes(x = hours, y = Flux/1000*60, color = Catego
     plot.margin = margin(t = 20, r = 10, b = 20, l = 10),
     legend.position = "none"
   )
-
+print(flux_plot)
 # Temperature plot
 temperature_plot <- ggplot(hour_T, aes(x = hour, y = T)) +
   geom_line(color = "black", size = 0.8) +
@@ -305,8 +305,8 @@ combined_flux_env <- flux_plot + temperature_plot + ws_plot + wd_plot +
   )
 print(combined_flux_env)
 # Save combined flux and environmental plot
-ggsave("../plots/Fig3.png", 
-       combined_flux_env, 
+ggsave("../plots/Fig3.jpg", 
+       flux_plot, 
        width = 16, 
        height = 12, 
        dpi = 600,
@@ -315,7 +315,7 @@ ggsave("../plots/Fig3.png",
 cat("\n=== PLOTTING COMPLETE ===\n")
 cat("Plots saved to ../plots/\n")
 
-
+getwd()
 # ==============================================================================
 # OAV TIME SERIES AND CATEGORY HISTOGRAM (moved from oav.R)
 # ==============================================================================

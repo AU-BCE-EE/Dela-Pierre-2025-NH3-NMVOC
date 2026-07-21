@@ -926,18 +926,5 @@ print(a)
 
 
 
-# ==============================================================================
-# DIAGNOSTIC: ANOVA visualization (moved from stats.R)
-# cum_voc_emis already loaded above
-# ==============================================================================
 
-data_anova <- cum_voc_emis %>% filter(group != "Machine plot")
-data_anova$group <- relevel(factor(data_anova$group), ref = "No acid")
-
-ggplot(data_anova, aes(group, total_cum, color = group)) +
-  geom_point() +
-  stat_summary(aes(group = 1), fun = mean, geom = "line", color = "black") +
-  theme_bw() +
-  labs(y = "Cumulative emissions", x = NULL) +
-  theme(legend.title = element_blank())
 
