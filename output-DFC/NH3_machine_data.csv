@@ -1,0 +1,289 @@
+"treatment","elapsed.time","application","NH3.value_avg","sd_flux"
+"Machine plot DFC",0,"Machine Application",0.718594565708014,0.840325314295841
+"Machine plot DFC",3,"Machine Application",0.230032118802398,0.151745955185051
+"Machine plot DFC",5,"Machine Application",0.108222715691774,0.0726786385564812
+"Machine plot DFC",8,"Machine Application",0.0376103984262148,0.0256606973954185
+"Machine plot DFC",10,"Machine Application",0.0262898609753873,0.0101572368788941
+"Machine plot DFC",13,"Machine Application",0.0401369055324233,0.00624229929177926
+"Machine plot DFC",15,"Machine Application",0.0385084990706761,0.00853406433894628
+"Machine plot DFC",18,"Machine Application",0.0654174467362385,0.0434989938784408
+"Machine plot DFC",20,"Machine Application",0.122504752174477,0.0637792271204059
+"Machine plot DFC",23,"Machine Application",0.162732363451945,0.0441904454342131
+"Machine plot DFC",25,"Machine Application",0.170631314211605,0.019749290164755
+"Machine plot DFC",28,"Machine Application",0.116387023446179,0.0245987121418967
+"Machine plot DFC",30,"Machine Application",0.0496023577758303,0.0151712290949694
+"Machine plot DFC",33,"Machine Application",0.032841488042065,0.0157153110252415
+"Machine plot DFC",35,"Machine Application",0.0312048071760344,0.0113928296424058
+"Machine plot DFC",38,"Machine Application",0.0343420216338251,0.014579687255679
+"Machine plot DFC",41,"Machine Application",0.0430102163605117,0.0214799697225782
+"Machine plot DFC",43,"Machine Application",0.0626297236460679,0.0314332209575471
+"Machine plot DFC",46,"Machine Application",0.106197641265565,0.0575470667736944
+"Machine plot DFC",48,"Machine Application",0.136164013777361,0.0480147457464964
+"Machine plot DFC",51,"Machine Application",0.117424324659174,0.0138224785373802
+"Machine plot DFC",53,"Machine Application",0.0731613358513374,0.0206110151760153
+"Machine plot DFC",56,"Machine Application",0.058728489555021,0.012686219666084
+"Machine plot DFC",58,"Machine Application",0.0695269160787653,0.00861826570177086
+"Machine plot DFC",61,"Machine Application",0.0729161875083917,0.00860808591369862
+"Machine plot DFC",63,"Machine Application",0.0760344859833166,0.0108942014813346
+"Machine plot DFC",66,"Machine Application",0.100927050714523,0.0337659091166261
+"Machine plot DFC",68,"Machine Application",0.153269578222521,0.0398598713251267
+"Machine plot DFC",71,"Machine Application",0.173171475660985,0.023734094923121
+"Machine plot DFC",73,"Machine Application",0.141230377290478,0.015830486001624
+"Machine plot DFC",76,"Machine Application",0.0845370262437846,0.0153724375233563
+"Machine plot DFC",78,"Machine Application",0.0477116754038317,0.011949362918142
+"Machine plot DFC",81,"Machine Application",0.0457775374367111,0.0094301990156073
+"Machine plot DFC",84,"Machine Application",0.0459523925610248,0.00918762148684834
+"Machine plot DFC",86,"Machine Application",0.0433533433203605,0.00924791164234878
+"Machine plot DFC",89,"Machine Application",0.0583832394987877,0.0456127208205991
+"Machine plot DFC",91,"Machine Application",0.103648357810848,0.0411352012867219
+"Machine plot DFC",94,"Machine Application",0.121921716985877,0.0226401275092835
+"Machine plot DFC",96,"Machine Application",0.103536815584997,0.0293136589064679
+"Machine plot DFC",99,"Machine Application",0.0684837933789677,0.0168404051845857
+"Machine plot DFC",101,"Machine Application",0.0303626812306803,0.0162416511648841
+"Machine plot DFC",104,"Machine Application",0.0157044784398318,0.0192692044989981
+"Machine plot DFC",106,"Machine Application",0.0191477483559184,0.0176580276221613
+"Machine plot DFC",109,"Machine Application",0.0254434682905963,0.0133629724471322
+"Machine plot DFC",111,"Machine Application",0.0283628931931061,0.0171506525137447
+"Machine plot DFC",114,"Machine Application",0.0416108737411476,0.0277139928242224
+"Machine plot DFC",116,"Machine Application",0.0550362753421961,0.034221890860519
+"Machine plot DFC",119,"Machine Application",0.0634529925396729,0.0142573810530826
+"0-bLS",0,"Machine Application",0.324275333651241,0
+"0-bLS",0.5,"Machine Application",0.331835655861723,0
+"0-bLS",1,"Machine Application",0.559821112119182,0
+"0-bLS",1.5,"Machine Application",0.506610437500984,0
+"0-bLS",2,"Machine Application",0.44230020025282,0
+"0-bLS",2.5,"Machine Application",0.506199189472531,0
+"0-bLS",3,"Machine Application",0.347940251275901,0
+"0-bLS",3.5,"Machine Application",0.752800779030177,0
+"0-bLS",4,"Machine Application",0.224422621667124,0
+"0-bLS",4.5,"Machine Application",0.191844876349887,0
+"0-bLS",5,"Machine Application",0.104769869710275,0
+"0-bLS",5.5,"Machine Application",0.135779313287476,0
+"0-bLS",6,"Machine Application",0.0991829555865754,0
+"0-bLS",6.5,"Machine Application",0.0908033855581778,0
+"0-bLS",7,"Machine Application",0.0528603470814078,0
+"0-bLS",7.5,"Machine Application",0.0575643073985784,0
+"0-bLS",8,"Machine Application",0.0190229120031817,0
+"0-bLS",8.5,"Machine Application",0.0211858997142198,0
+"0-bLS",9,"Machine Application",0.0233488874252578,0
+"0-bLS",9.5,"Machine Application",0.0255118751362959,0
+"0-bLS",10,"Machine Application",0.027674862847334,0
+"0-bLS",10.5,"Machine Application",0.029837850558372,0
+"0-bLS",11,"Machine Application",0.03200083826941,0
+"0-bLS",11.5,"Machine Application",0.0341638259804481,0
+"0-bLS",12,"Machine Application",0.0363268136914861,0
+"0-bLS",12.5,"Machine Application",0.0384898014025242,0
+"0-bLS",13,"Machine Application",0.0406527891135623,0
+"0-bLS",13.5,"Machine Application",0.0428157768246004,0
+"0-bLS",14,"Machine Application",0.0449787645356385,0
+"0-bLS",14.5,"Machine Application",0.0471417522466765,0
+"0-bLS",15,"Machine Application",0.0493047399577145,0
+"0-bLS",15.5,"Machine Application",0.0418436802233378,0
+"0-bLS",16,"Machine Application",0.0343826204889609,0
+"0-bLS",16.5,"Machine Application",0.026921560754584,0
+"0-bLS",17,"Machine Application",0.0194605010202072,0
+"0-bLS",17.5,"Machine Application",0.0119994412858304,0
+"0-bLS",18,"Machine Application",0.0127684248710098,0
+"0-bLS",18.5,"Machine Application",0.0135374084561891,0
+"0-bLS",19,"Machine Application",0.0281550294221156,0
+"0-bLS",19.5,"Machine Application",0.0241170025444833,0
+"0-bLS",20,"Machine Application",0.0138528977517334,0
+"0-bLS",20.5,"Machine Application",0.026900352549977,0
+"0-bLS",21,"Machine Application",0.0399478073482208,0
+"0-bLS",21.5,"Machine Application",0.0529952621464644,0
+"0-bLS",22,"Machine Application",0.159444833367755,0
+"0-bLS",22.5,"Machine Application",0.198389336633707,0
+"0-bLS",23,"Machine Application",0.178716378067182,0
+"0-bLS",23.5,"Machine Application",0.179716700035251,0
+"0-bLS",24,"Machine Application",0.249933722808086,0
+"0-bLS",24.5,"Machine Application",0.210817132828511,0
+"0-bLS",25,"Machine Application",0.18881106200788,0
+"0-bLS",25.5,"Machine Application",0.207313793805644,0
+"0-bLS",26,"Machine Application",0.197413677344076,0
+"0-bLS",26.5,"Machine Application",0.187513560882507,0
+"0-bLS",27,"Machine Application",0.24019130195097,0
+"0-bLS",27.5,"Machine Application",0.209260560982733,0
+"0-bLS",28,"Machine Application",0.175517096398169,0
+"0-bLS",28.5,"Machine Application",0.141773631813606,0
+"0-bLS",29,"Machine Application",0.111583974725163,0
+"0-bLS",29.5,"Machine Application",0.0751601161377493,0
+"0-bLS",30,"Machine Application",0.0601253687352424,0
+"0-bLS",30.5,"Machine Application",0.0383806887772247,0
+"0-bLS",31,"Machine Application",0.0289261794655475,0
+"0-bLS",31.5,"Machine Application",0.0176728034249625,0
+"0-bLS",32,"Machine Application",0.0249516404721586,0
+"0-bLS",32.5,"Machine Application",0.0322304775193547,0
+"0-bLS",33,"Machine Application",0.0248095492737782,0
+"0-bLS",33.5,"Machine Application",0.0173886210282016,0
+"0-bLS",34,"Machine Application",0.00996769278262512,0
+"0-bLS",34.5,"Machine Application",0.00254676453704852,0
+"0-bLS",35,"Machine Application",0.00413106597871212,0
+"0-bLS",35.5,"Machine Application",0.00565814649657229,0
+"0-bLS",36,"Machine Application",0.00718522701443247,0
+"0-bLS",36.5,"Machine Application",0.00871230753229266,0
+"0-bLS",37,"Machine Application",0.0102393880501528,0
+"0-bLS",37.5,"Machine Application",0.011766468568013,0
+"0-bLS",38,"Machine Application",0.0132935490858732,0
+"0-bLS",38.5,"Machine Application",0.0148206296037333,0
+"0-bLS",39,"Machine Application",0.0163477101215935,0
+"0-bLS",39.5,"Machine Application",0.0178747906394538,0
+"0-bLS",40,"Machine Application",0.0194018711573139,0
+"0-bLS",40.5,"Machine Application",0.0209289516751741,0
+"0-bLS",41,"Machine Application",0.0311469400275098,0
+"0-bLS",41.5,"Machine Application",0.0519396026516161,0
+"0-bLS",42,"Machine Application",0.0350938658867009,0
+"0-bLS",42.5,"Machine Application",0.0366263314919713,0
+"0-bLS",43,"Machine Application",0.0350480086303314,0
+"0-bLS",43.5,"Machine Application",0.0341772804865305,0
+"0-bLS",44,"Machine Application",0.0305244000075021,0
+"0-bLS",44.5,"Machine Application",0.031326751990418,0
+"0-bLS",45,"Machine Application",0.0426502652654874,0
+"0-bLS",45.5,"Machine Application",0.0475624188373635,0
+"0-bLS",46,"Machine Application",0.0491597425061692,0
+"0-bLS",46.5,"Machine Application",0.0545347638261325,0
+"0-bLS",47,"Machine Application",0.0745483211719453,0
+"0-bLS",47.5,"Machine Application",0.0928323579136397,0
+"0-bLS",48,"Machine Application",0.0812317867533816,0
+"0-bLS",48.5,"Machine Application",0.120234497827749,0
+"0-bLS",49,"Machine Application",0.159237208902115,0
+"0-bLS",49.5,"Machine Application",0.190155665817259,0
+"0-bLS",50,"Machine Application",0.294229525122543,0
+"0-bLS",50.5,"Machine Application",0.298953932834137,0
+"0-bLS",51,"Machine Application",0.273811246986459,0
+"0-bLS",51.5,"Machine Application",0.248668561138782,0
+"0-bLS",52,"Machine Application",0.197970634582984,0
+"0-bLS",52.5,"Machine Application",0.147272708027186,0
+"0-bLS",53,"Machine Application",0.0965747814713879,0
+"0-bLS",53.5,"Machine Application",0.0458768549155894,0
+"0-bLS",54,"Machine Application",0.0288271742071662,0
+"0-bLS",54.5,"Machine Application",0.0365280367059865,0
+"0-bLS",55,"Machine Application",0.0303365134329498,0
+"0-bLS",55.5,"Machine Application",0.0241449901599132,0
+"0-bLS",56,"Machine Application",0.0179534668868765,0
+"0-bLS",56.5,"Machine Application",0.0117619436138399,0
+"0-bLS",57,"Machine Application",0.016167718683266,0
+"0-bLS",57.5,"Machine Application",-0.0126629283760598,0
+"0-bLS",58,"Machine Application",-0.00997960100129374,0
+"0-bLS",58.5,"Machine Application",0.0255486295045798,0
+"0-bLS",59,"Machine Application",0.022701170182308,0
+"0-bLS",59.5,"Machine Application",0.019881522009002,0
+"0-bLS",60,"Machine Application",0.023989920454154,0
+"0-bLS",60.5,"Machine Application",0.0280983188993059,0
+"0-bLS",61,"Machine Application",0.0341552675103003,0
+"0-bLS",61.5,"Machine Application",0.0444380919480694,0
+"0-bLS",62,"Machine Application",0.0547209163858387,0
+"0-bLS",62.5,"Machine Application",0.0306132540958637,0
+"0-bLS",63,"Machine Application",0.0402368263196968,0
+"0-bLS",63.5,"Machine Application",0.0384584202136424,0
+"0-bLS",64,"Machine Application",0.0370954164066087,0
+"0-bLS",64.5,"Machine Application",0.0422358338652543,0
+"0-bLS",65,"Machine Application",0.0473762513239001,0
+"0-bLS",65.5,"Machine Application",0.0386733435001997,0
+"0-bLS",66,"Machine Application",0.0360626256040998,0
+"0-bLS",66.5,"Machine Application",0.0348687118987675,0
+"0-bLS",67,"Machine Application",0.0264217499867105,0
+"0-bLS",67.5,"Machine Application",0.0288304918998623,0
+"0-bLS",68,"Machine Application",0.031239233813014,0
+"0-bLS",68.5,"Machine Application",0.0376300669156845,0
+"0-bLS",69,"Machine Application",0.0427651384600844,0
+"0-bLS",69.5,"Machine Application",0.0438489648088278,0
+"0-bLS",70,"Machine Application",0.0587375362370595,0
+"0-bLS",70.5,"Machine Application",0.0736261076652908,0
+"0-bLS",71,"Machine Application",0.107948586622521,0
+"0-bLS",71.5,"Machine Application",0.147335197345844,0
+"0-bLS",72,"Machine Application",0.186721808069167,0
+"0-bLS",72.5,"Machine Application",0.22610841879249,0
+"0-bLS",73,"Machine Application",0.197938608661941,0
+"0-bLS",73.5,"Machine Application",0.220257982288323,0
+"0-bLS",74,"Machine Application",0.242577355914703,0
+"0-bLS",74.5,"Machine Application",0.217456925619942,0
+"0-bLS",75,"Machine Application",0.192336495325182,0
+"0-bLS",75.5,"Machine Application",0.16721606503042,0
+"0-bLS",76,"Machine Application",0.151791203292118,0
+"0-bLS",76.5,"Machine Application",0.136366341553815,0
+"0-bLS",77,"Machine Application",0.052723419563849,0
+"0-bLS",77.5,"Machine Application",0.0463300881522038,0
+"0-bLS",78,"Machine Application",0.0303772213180541,0
+"0-bLS",78.5,"Machine Application",0.0247006837254803,0
+"0-bLS",79,"Machine Application",0.00938445306163466,0
+"0-bLS",79.5,"Machine Application",-0.00593177760221103,0
+"0-bLS",80,"Machine Application",0.000335139754843221,0
+"0-bLS",80.5,"Machine Application",0.00235790555450168,0
+"0-bLS",81,"Machine Application",0.00438067135416015,0
+"0-bLS",81.5,"Machine Application",0.00640343715381863,0
+"0-bLS",82,"Machine Application",0.00842620295347707,0
+"0-bLS",82.5,"Machine Application",0.0104489687531355,0
+"0-bLS",83,"Machine Application",0.012471734552794,0
+"0-bLS",83.5,"Machine Application",0.0144945003524525,0
+"0-bLS",84,"Machine Application",0.016517266152111,0
+"0-bLS",84.5,"Machine Application",0.0185400319517694,0
+"0-bLS",85,"Machine Application",0.0205627977514279,0
+"0-bLS",85.5,"Machine Application",0.0225855635510864,0
+"0-bLS",86,"Machine Application",0.0246083293507448,0
+"0-bLS",86.5,"Machine Application",0.0266310951504033,0
+"0-bLS",87,"Machine Application",0.0286538609500618,0
+"0-bLS",87.5,"Machine Application",0.00849455701430865,0
+"0-bLS",88,"Machine Application",0.00953844841997279,0
+"0-bLS",88.5,"Machine Application",0.0105823398256369,0
+"0-bLS",89,"Machine Application",0.0116262312313011,0
+"0-bLS",89.5,"Machine Application",0.0126701226369652,0
+"0-bLS",90,"Machine Application",0.0137140140426294,0
+"0-bLS",90.5,"Machine Application",0.0147579054482935,0
+"0-bLS",91,"Machine Application",0.0158017968539577,0
+"0-bLS",91.5,"Machine Application",0.0168456882596219,0
+"0-bLS",92,"Machine Application",0.017889579665286,0
+"0-bLS",92.5,"Machine Application",0.0189334710709501,0
+"0-bLS",93,"Machine Application",0.0382010910495748,0
+"0-bLS",93.5,"Machine Application",0.0574687110281992,0
+"0-bLS",94,"Machine Application",0.106333523942985,0
+"0-bLS",94.5,"Machine Application",0.226657854731978,0
+"0-bLS",95,"Machine Application",0.193026567978335,0
+"0-bLS",95.5,"Machine Application",0.159395281224691,0
+"0-bLS",96,"Machine Application",0.125763994471046,0
+"0-bLS",96.5,"Machine Application",0.151051966464796,0
+"0-bLS",97,"Machine Application",0.126386914282587,0
+"0-bLS",97.5,"Machine Application",0.140506012699991,0
+"0-bLS",98,"Machine Application",0.140777777730569,0
+"0-bLS",98.5,"Machine Application",0.137642474289969,0
+"0-bLS",99,"Machine Application",0.137521831405612,0
+"0-bLS",99.5,"Machine Application",0.152712288204016,0
+"0-bLS",100,"Machine Application",0.131134016319958,0
+"0-bLS",100.5,"Machine Application",0.105882757047515,0
+"0-bLS",101,"Machine Application",0.0743143190002377,0
+"0-bLS",101.5,"Machine Application",0.0519807362175894,0
+"0-bLS",102,"Machine Application",0.0365381338308416,0
+"0-bLS",102.5,"Machine Application",0.0330251468516302,0
+"0-bLS",103,"Machine Application",0.0313697833009271,0
+"0-bLS",103.5,"Machine Application",0.0297144197502239,0
+"0-bLS",104,"Machine Application",0.0280590561995208,0
+"0-bLS",104.5,"Machine Application",0.0264036926488176,0
+"0-bLS",105,"Machine Application",0.0247483290981145,0
+"0-bLS",105.5,"Machine Application",0.0230929655474114,0
+"0-bLS",106,"Machine Application",0.0214376019967082,0
+"0-bLS",106.5,"Machine Application",0.0197822384460051,0
+"0-bLS",107,"Machine Application",0.0181268748953019,0
+"0-bLS",107.5,"Machine Application",0.0164715113445988,0
+"0-bLS",108,"Machine Application",0.0148161477938956,0
+"0-bLS",108.5,"Machine Application",0.0131607842431924,0
+"0-bLS",109,"Machine Application",0.0115054206924894,0
+"0-bLS",109.5,"Machine Application",0.00985005714178615,0
+"0-bLS",110,"Machine Application",0.00819469359108303,0
+"0-bLS",110.5,"Machine Application",0.00653933004037987,0
+"0-bLS",111,"Machine Application",0.00488396648967673,0
+"0-bLS",111.5,"Machine Application",0.00988338046583069,0
+"0-bLS",112,"Machine Application",0.0148827944419847,0
+"0-bLS",112.5,"Machine Application",0.0198822084181386,0
+"0-bLS",113,"Machine Application",0.0248816223942926,0
+"0-bLS",113.5,"Machine Application",0.0298810363704466,0
+"0-bLS",114,"Machine Application",0.0348804503466005,0
+"0-bLS",114.5,"Machine Application",0.0398798643227545,0
+"0-bLS",115,"Machine Application",0.0455511495918346,0
+"0-bLS",115.5,"Machine Application",0.0512224348609146,0
+"0-bLS",116,"Machine Application",0.0588634911421304,0
+"0-bLS",116.5,"Machine Application",0.0719403511382961,0
+"0-bLS",117,"Machine Application",0.0682529274975452,0
+"0-bLS",117.5,"Machine Application",0.0287527874791849,0
+"0-bLS",118,"Machine Application",0.0378499923159626,0
+"0-bLS",118.5,"Machine Application",0.0303568126877812,0
+"0-bLS",119,"Machine Application",0.0228636330595999,0
+"0-bLS",119.5,"Machine Application",0.0336864189406441,0

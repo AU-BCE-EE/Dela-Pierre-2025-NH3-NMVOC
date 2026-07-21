@@ -1,0 +1,6 @@
+"group","elapsed_time","category","value"
+"High acid",0,"VSC",2805.16966798062
+"Low acid",0,"VSC",3180.3241064254
+"Machine plot",0,"VSC",13.2714255398806
+"Medium acid",0,"VSC",2591.50855870167
+"No acid",0,"VSC",5458.38823061793

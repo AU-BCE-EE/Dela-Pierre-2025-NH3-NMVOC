@@ -63,3 +63,4 @@ mintegrate <- function(x, y, method = 'midpoint', lwr = min(x), upr = max(x), yl
   }
 
 }
+
